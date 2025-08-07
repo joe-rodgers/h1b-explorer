@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Database configuration
+# Database configuration for SiteGround
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'localhost'),
-    'database': os.environ.get('DB_NAME', 'h1b_explorer'),
-    'user': os.environ.get('DB_USER', 'postgres'),
+    'database': os.environ.get('DB_NAME', 'dbibgk9afya5vu'),
+    'user': os.environ.get('DB_USER', 'u68bxgiobe3si'),
     'password': os.environ.get('DB_PASSWORD', ''),
     'port': os.environ.get('DB_PORT', '5432')
 }

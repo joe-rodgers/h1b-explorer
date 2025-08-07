@@ -160,10 +160,94 @@ def api_info():
             "test": "/api/test",
             "db_status": "/api/db-status",
             "health": "/api/health",
-            "info": "/api/info"
+            "info": "/api/info",
+            "setup_db": "/api/setup-db"
         },
         "timestamp": datetime.now().isoformat()
     })
+
+@app.route('/api/setup-db')
+def setup_database():
+    """Setup database tables and initial data"""
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({
+                "success": False,
+                "error": "Failed to connect to database",
+                "timestamp": datetime.now().isoformat()
+            }), 500
+        
+        cursor = conn.cursor()
+        
+        # Create H1B applications table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS h1b_applications (
+                id SERIAL PRIMARY KEY,
+                employer_name VARCHAR(255) NOT NULL,
+                job_title VARCHAR(255) NOT NULL,
+                location VARCHAR(255) NOT NULL,
+                salary DECIMAL(10,2) NOT NULL,
+                year INTEGER NOT NULL,
+                case_status VARCHAR(100),
+                visa_class VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        
+        # Create indexes
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_employer ON h1b_applications(employer_name);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_job_title ON h1b_applications(job_title);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_year ON h1b_applications(year);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_location ON h1b_applications(location);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_salary ON h1b_applications(salary);")
+        
+        # Create statistics table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS h1b_statistics (
+                id SERIAL PRIMARY KEY,
+                year INTEGER NOT NULL,
+                total_applications INTEGER DEFAULT 0,
+                avg_salary DECIMAL(10,2) DEFAULT 0,
+                top_employer VARCHAR(255),
+                top_location VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        
+        # Insert sample data
+        sample_data = [
+            ('Google LLC', 'Software Engineer', 'Mountain View, CA', 150000, 2023, 'Certified', 'H-1B'),
+            ('Microsoft Corporation', 'Data Scientist', 'Redmond, WA', 140000, 2023, 'Certified', 'H-1B'),
+            ('Apple Inc.', 'Product Manager', 'Cupertino, CA', 160000, 2023, 'Certified', 'H-1B'),
+        ]
+        
+        cursor.executemany("""
+            INSERT INTO h1b_applications (employer_name, job_title, location, salary, year, case_status, visa_class)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
+        """, sample_data)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Database setup completed successfully",
+            "tables_created": ["h1b_applications", "h1b_statistics"],
+            "sample_data_inserted": len(sample_data),
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Database setup error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }), 500
 
 @app.errorhandler(404)
 def not_found(error):

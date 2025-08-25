@@ -156,17 +156,27 @@ const H1BDataGrid: React.FC = () => {
   // Fetch aggregated year series respecting current filters (limited sample for safety)
   const fetchYearAggregate = async (fm?: Record<string, any>) => {
     try {
-      let query = supabase.from('h1b_cases').select('fiscal_year').limit(5000);
-      query = applyFiltersToQuery(query, fm);
-      const { data, error } = await query;
-      if (error || !Array.isArray(data)) { setYearSeries([]); return; }
-      const agg = new Map<number, number>();
-      for (const r of data as any[]) {
-        const y = Number(r.fiscal_year);
-        if (Number.isFinite(y)) agg.set(y, (agg.get(y) ?? 0) + 1);
+      const YEARS = Array.from({ length: 2025 - 2009 + 1 }, (_, i) => 2009 + i);
+
+      // If user already filters by a specific fiscal_year, only query that year
+      let targetYears = YEARS;
+      const fyFilter = fm && (fm as any)['fiscal_year'];
+      if (fyFilter && !fyFilter.operator) {
+        const num = parseInt(String(fyFilter.filter ?? '').replace(/[^0-9-]/g, ''), 10);
+        if (Number.isFinite(num)) targetYears = [num];
       }
-      const series = Array.from(agg.entries()).map(([year, total]) => ({ year, total })).sort((a,b)=>a.year-b.year);
-      setYearSeries(series);
+
+      const requests = targetYears.map(async (year) => {
+        let q = supabase.from('h1b_cases').select('id', { head: true, count: 'exact' }).eq('fiscal_year', year);
+        // Apply other filters except fiscal_year
+        const fmSansYear = { ...(fm || {}) } as any; delete fmSansYear['fiscal_year'];
+        q = applyFiltersToQuery(q, fmSansYear);
+        const { count, error } = await q;
+        return { year, total: error ? 0 : (count ?? 0) };
+      });
+
+      const results = await Promise.all(requests);
+      setYearSeries(results.sort((a,b)=>a.year-b.year));
     } catch { setYearSeries([]); }
   };
 

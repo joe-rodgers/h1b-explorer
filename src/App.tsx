@@ -1,16 +1,16 @@
 import './App.css'
 import H1BDataGrid from './components/H1BDataGrid'
+import Header from './components/Header'
+import Footer from './components/Footer'
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>H1B Visa Data Explorer</h1>
-        <p>Interactive dashboard for exploring H1B visa data from 2009-2025</p>
-      </header>
+      <Header />
       <main>
         <H1BDataGrid />
       </main>
+      <Footer />
     </div>
   )
 }

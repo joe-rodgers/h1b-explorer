@@ -1,16 +1,10 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --fuji-snow: #F1EFE8;
+  --transporter-green: #004F54;
+  --tyrian-purple: #66023C;
+  --black-chasm: #102C33;
+  --cozy-nook: #FBA765;
+  --x-spot: #765A3F;
 }
 
 a {
@@ -24,8 +18,9 @@ a:hover {
 
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+  background: var(--fuji-snow);
+  color: var(--black-chasm);
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 h1 {
@@ -67,9 +62,6 @@ button:focus-visible {
   }
 }
 
-#root {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-}
+#root { min-height: 100vh; display: flex; }
+.App { display: flex; flex-direction: column; width: 100%; }
+main { flex: 1; padding: 16px; }

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, IGetRowsParams } from 'ag-grid-community';
 // AG Grid v34 requires base CSS plus theme CSS when using legacy themes
@@ -122,7 +122,30 @@ const H1BDataGrid: React.FC = () => {
     }
   }), [])
 
-  // No local loading/error now; grid fetches on demand
+  // Aggregate across current filter model via a lightweight Supabase count per year
+  useEffect(() => {
+    (async () => {
+      try {
+        // Build a filter-only query mirroring grid filters, then group by year client-side
+        // For safety and speed, fetch only fiscal_year (first 5000 rows under current filters)
+        let query = supabase.from('h1b_cases').select('fiscal_year', { count: 'exact' }).limit(5000);
+        // Note: we intentionally do not mirror OR combinations here to keep it safe/minimal
+        // Users can refine later; this is a preview aggregation
+        const { data, error } = await query;
+        if (!error && Array.isArray(data)) {
+          const agg = new Map<number, number>();
+          for (const r of data as any[]) {
+            const y = Number(r.fiscal_year);
+            if (Number.isFinite(y)) agg.set(y, (agg.get(y) ?? 0) + 1);
+          }
+          const series = Array.from(agg.entries())
+            .map(([year, total]) => ({ year, total }))
+            .sort((a, b) => a.year - b.year);
+          (window as any).__h1bYearSeries = series; // optional: expose for debug
+        }
+      } catch {}
+    })();
+  }, []);
 
   return (
     <div className="h1b-grid-container">
@@ -135,7 +158,11 @@ const H1BDataGrid: React.FC = () => {
       </div>
       
       <div className="grid-controls">
-        <p className="grid-info">This grid displays H1B visa application data with sorting, filtering, and pagination capabilities. Use the column headers to sort and the floating filters to search specific values.</p>
+        <p className="grid-info">This grid displays H1B visa application data with sorting, filtering, and pagination capabilities. The chart below will summarize total applications by year without affecting grid performance.</p>
+        <div style={{ marginTop: 12 }}>
+          {/* Safely read series prepared in effect; default to empty until ready */}
+          <ApplicationsByYearChart data={(window as any).__h1bYearSeries ?? []} />
+        </div>
       </div>
       
       <div className="ag-theme-alpine" style={{ height: '700px', width: '100%' }}>

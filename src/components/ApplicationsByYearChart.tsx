@@ -1,20 +1,22 @@
 import { useEffect, useRef } from 'react';
-import * as am5 from '@amcharts/amcharts5';
-import * as am5xy from '@amcharts/amcharts5/xy';
-import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 export type YearDatum = { year: number; total: number };
 
 export default function ApplicationsByYearChart({ data }: { data: YearDatum[] }) {
   const chartRef = useRef<HTMLDivElement | null>(null);
-  const rootRef = useRef<am5.Root | null>(null);
+  const rootRef = useRef<any | null>(null);
 
   useEffect(() => {
-    if (!chartRef.current) return;
-    // init once
-    if (!rootRef.current) {
+    let disposed = false;
+    (async () => {
+      if (!chartRef.current || rootRef.current) return;
+      const am5 = await import('@amcharts/amcharts5');
+      const am5xy = await import('@amcharts/amcharts5/xy');
+      const { default: Animated } = await import('@amcharts/amcharts5/themes/Animated');
+      if (disposed || !chartRef.current) return;
+
       const root = am5.Root.new(chartRef.current);
-      root.setThemes([am5themes_Animated.new(root)]);
+      root.setThemes([Animated.new(root)]);
 
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
@@ -48,36 +50,39 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           categoryXField: 'year'
         })
       );
-
       series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
 
-      // store on root for updates
-      (root as any)._xAxis = xAxis;
-      (root as any)._series = series;
-
+      ;(root as any)._xAxis = xAxis;
+      ;(root as any)._series = series;
       rootRef.current = root;
-    }
+    })();
+
     return () => {
-      // cleanup on unmount
-      // keep chart across updates; root is disposed in parent lifecycle if needed
+      disposed = true;
+      if (rootRef.current) {
+        rootRef.current.dispose();
+        rootRef.current = null;
+      }
     };
   }, []);
 
   useEffect(() => {
-    const root = rootRef.current as any;
+    const root: any = rootRef.current;
     if (!root) return;
-    const xAxis: am5xy.CategoryAxis<am5.AxisRenderer> = root._xAxis;
-    const series: am5xy.ColumnSeries = root._series;
-
-    const items = data
+    const xAxis = root._xAxis;
+    const series = root._series;
+    const items = (data || [])
       .slice()
       .sort((a, b) => a.year - b.year)
       .map((d) => ({ year: String(d.year), total: d.total }));
-
-    const ds = am5.Data.new(root, items);
+    if (items.length === 0) {
+      xAxis.data.setAll([]);
+      series.data.setAll([]);
+      return;
+    }
     xAxis.data.setAll(items);
     series.data.setAll(items);
   }, [data]);
 
-  return <div style={{ width: '100%', height: 300 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 320 }} ref={chartRef} />;
 }

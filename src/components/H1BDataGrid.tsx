@@ -4,6 +4,7 @@ import type { ColDef, IGetRowsParams } from 'ag-grid-community';
 // AG Grid v34 requires base CSS plus theme CSS when using legacy themes
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import ApplicationsByYearChart from './ApplicationsByYearChart';
 
 interface H1BRecord { [key: string]: any }
 
@@ -15,6 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseAnon)
 
 const H1BDataGrid: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [yearSeries, setYearSeries] = useState<{ year: number; total: number }[]>([]);
 
   // Column definitions mapped to Supabase (snake_case) schema
   const columnDefs: ColDef[] = [
@@ -114,7 +116,23 @@ const H1BDataGrid: React.FC = () => {
         if (typeof count === 'number') {
           setTotalCount(count)
         }
-        params.successCallback(data as H1BRecord[], count ?? 0)
+        const rows = data as H1BRecord[]
+
+        // Aggregate for chart: total rows by fiscal_year from the fetched slice
+        const agg = new Map<number, number>()
+        for (const r of rows) {
+          const y = Number(r.fiscal_year)
+          if (Number.isFinite(y)) agg.set(y, (agg.get(y) ?? 0) + 1)
+        }
+        const years = Array.from(agg.entries()).map(([year, total]) => ({ year, total }))
+        setYearSeries((prev) => {
+          const map = new Map<number, number>()
+          for (const p of prev) map.set(p.year, (map.get(p.year) ?? 0) + p.total)
+          for (const { year, total } of years) map.set(year, (map.get(year) ?? 0) + total)
+          return Array.from(map.entries()).map(([year, total]) => ({ year, total }))
+        })
+
+        params.successCallback(rows, count ?? 0)
       } catch (e) {
         console.error(e)
         params.failCallback()
@@ -135,10 +153,8 @@ const H1BDataGrid: React.FC = () => {
       </div>
       
       <div className="grid-controls">
-        <p className="grid-info">
-          This grid displays H1B visa application data with sorting, filtering, and pagination capabilities.
-          Use the column headers to sort and the floating filters to search specific values.
-        </p>
+        <p className="grid-info">Interactive grid with filters; the chart below reflects current data slice.</p>
+        <ApplicationsByYearChart data={yearSeries} />
       </div>
       
       <div className="ag-theme-alpine" style={{ height: '700px', width: '100%' }}>

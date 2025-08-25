@@ -22,14 +22,10 @@ const H1BDataGrid: React.FC = () => {
   const columnDefs: ColDef[] = [
     { field: 'fiscal_year', headerName: 'Fiscal Year', sortable: true, filter: 'agNumberColumnFilter', filterParams: { filterOptions: ['equals','lessThan','greaterThan'] } },
     { field: 'employer_name', headerName: 'Employer Name', sortable: true, filter: 'agTextColumnFilter', cellStyle: { textAlign: 'left' } },
-    { field: 'tax_id', headerName: 'Tax ID', sortable: true, filter: 'agTextColumnFilter' },
     { field: 'naics_code', headerName: 'NAICS Code', sortable: true, filter: 'agTextColumnFilter' },
     { field: 'petitioner_city', headerName: 'City', sortable: true, filter: 'agTextColumnFilter' },
     { field: 'petitioner_state', headerName: 'State', sortable: true, filter: 'agTextColumnFilter' },
-    { field: 'new_employment_approval', headerName: 'New Employment Approval', sortable: true, filter: 'agNumberColumnFilter' },
-    { field: 'new_employment_denial', headerName: 'New Employment Denial', sortable: true, filter: 'agNumberColumnFilter' },
-    { field: 'continuation_approval', headerName: 'Continuation Approval', sortable: true, filter: 'agNumberColumnFilter' },
-    { field: 'continuation_denial', headerName: 'Continuation Denial', sortable: true, filter: 'agNumberColumnFilter' }
+    { field: 'new_employment_approval', headerName: 'New Employment Approval', sortable: true, filter: 'agNumberColumnFilter' }
   ];
 
   // Infinite row model datasource fetching from Supabase
@@ -47,7 +43,7 @@ const H1BDataGrid: React.FC = () => {
         // Filtering (map AG Grid filter model to Supabase)
         const fm = params.filterModel as Record<string, any>
         const textCols = new Set(['line_by_line','employer_name','tax_id','naics_code','petitioner_city','petitioner_state','petitioner_zip','source_file'])
-        const numberCols = new Set(['fiscal_year','new_employment_approval','new_employment_denial','continuation_approval','continuation_denial','data_year'])
+        const numberCols = new Set(['fiscal_year','new_employment_approval','data_year'])
 
         const applySingle = (colId: string, model: any) => {
           if (!model) return

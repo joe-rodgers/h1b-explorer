@@ -16,6 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseAnon)
 
 const H1BDataGrid: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [yearSeries, setYearSeries] = useState<{ year: number; total: number }[]>([]);
 
   // Column definitions mapped to Supabase (snake_case) schema
   const columnDefs: ColDef[] = [
@@ -123,30 +124,54 @@ const H1BDataGrid: React.FC = () => {
     }
   }), [])
 
-  // Aggregate across current filter model via a lightweight Supabase count per year
-  useEffect(() => {
-    (async () => {
-      try {
-        // Build a filter-only query mirroring grid filters, then group by year client-side
-        // For safety and speed, fetch only fiscal_year (first 5000 rows under current filters)
-        let query = supabase.from('h1b_cases').select('fiscal_year', { count: 'exact' }).limit(5000);
-        // Note: we intentionally do not mirror OR combinations here to keep it safe/minimal
-        // Users can refine later; this is a preview aggregation
-        const { data, error } = await query;
-        if (!error && Array.isArray(data)) {
-          const agg = new Map<number, number>();
-          for (const r of data as any[]) {
-            const y = Number(r.fiscal_year);
-            if (Number.isFinite(y)) agg.set(y, (agg.get(y) ?? 0) + 1);
-          }
-          const series = Array.from(agg.entries())
-            .map(([year, total]) => ({ year, total }))
-            .sort((a, b) => a.year - b.year);
-          (window as any).__h1bYearSeries = series; // optional: expose for debug
-        }
-      } catch {}
-    })();
-  }, []);
+  // Helper to apply basic filters to a Supabase query (no OR handling for simplicity)
+  const applyFiltersToQuery = (query: any, fm: Record<string, any> | undefined) => {
+    if (!fm) return query;
+    const textCols = new Set(['line_by_line','employer_name','tax_id','naics_code','petitioner_city','petitioner_state','petitioner_zip','source_file']);
+    const numberCols = new Set(['fiscal_year','new_employment_approval','new_employment_denial','continuation_approval','continuation_denial','data_year']);
+    for (const [colId, model] of Object.entries(fm)) {
+      if (!model) continue;
+      const m = (model as any).operator ? (model as any).conditions?.[0] : model;
+      if (!m) continue;
+      const type = String(m.type || '').toLowerCase();
+      const raw = m.filter;
+      if (textCols.has(colId)) {
+        const term = String(raw ?? '').trim();
+        if (!term) continue;
+        if (type === 'equals') query = query.eq(colId, term);
+        else if (type === 'startswith') query = query.ilike(colId, `${term}%`);
+        else if (type === 'endswith') query = query.ilike(colId, `%${term}`);
+        else query = query.ilike(colId, `%${term}%`);
+      } else if (numberCols.has(colId)) {
+        const num = parseInt(String(raw ?? '').replace(/[^0-9-]/g, ''), 10);
+        if (Number.isNaN(num)) continue;
+        if (type === 'lessthan') query = query.lt(colId, num);
+        else if (type === 'greaterthan') query = query.gt(colId, num);
+        else query = query.eq(colId, num);
+      }
+    }
+    return query;
+  };
+
+  // Fetch aggregated year series respecting current filters (limited sample for safety)
+  const fetchYearAggregate = async (fm?: Record<string, any>) => {
+    try {
+      let query = supabase.from('h1b_cases').select('fiscal_year').limit(5000);
+      query = applyFiltersToQuery(query, fm);
+      const { data, error } = await query;
+      if (error || !Array.isArray(data)) { setYearSeries([]); return; }
+      const agg = new Map<number, number>();
+      for (const r of data as any[]) {
+        const y = Number(r.fiscal_year);
+        if (Number.isFinite(y)) agg.set(y, (agg.get(y) ?? 0) + 1);
+      }
+      const series = Array.from(agg.entries()).map(([year, total]) => ({ year, total })).sort((a,b)=>a.year-b.year);
+      setYearSeries(series);
+    } catch { setYearSeries([]); }
+  };
+
+  // initial aggregate
+  useEffect(() => { fetchYearAggregate(); }, []);
 
   return (
     <div className="h1b-grid-container">
@@ -162,7 +187,7 @@ const H1BDataGrid: React.FC = () => {
         <p className="grid-info">This grid displays H1B visa application data with sorting, filtering, and pagination capabilities. The chart below will summarize total applications by year without affecting grid performance.</p>
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
-            <ApplicationsByYearChart data={(window as any).__h1bYearSeries ?? []} />
+            <ApplicationsByYearChart data={yearSeries} />
           </Suspense>
         </div>
       </div>
@@ -187,6 +212,11 @@ const H1BDataGrid: React.FC = () => {
           onGridReady={(params) => {
             console.log('Grid ready event fired');
             params.api.sizeColumnsToFit();
+            fetchYearAggregate(params.api.getFilterModel() as any);
+          }}
+          onFilterChanged={(e) => {
+            const fm = e.api.getFilterModel();
+            fetchYearAggregate(fm as any);
           }}
         />
       </div>

@@ -1,9 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, lazy, Suspense } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, IGetRowsParams } from 'ag-grid-community';
 // AG Grid v34 requires base CSS plus theme CSS when using legacy themes
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+const ApplicationsByYearChart = lazy(() => import('./ApplicationsByYearChart'));
 
 interface H1BRecord { [key: string]: any }
 
@@ -160,8 +161,9 @@ const H1BDataGrid: React.FC = () => {
       <div className="grid-controls">
         <p className="grid-info">This grid displays H1B visa application data with sorting, filtering, and pagination capabilities. The chart below will summarize total applications by year without affecting grid performance.</p>
         <div style={{ marginTop: 12 }}>
-          {/* Safely read series prepared in effect; default to empty until ready */}
-          <ApplicationsByYearChart data={(window as any).__h1bYearSeries ?? []} />
+          <Suspense fallback={null}>
+            <ApplicationsByYearChart data={(window as any).__h1bYearSeries ?? []} />
+          </Suspense>
         </div>
       </div>
       

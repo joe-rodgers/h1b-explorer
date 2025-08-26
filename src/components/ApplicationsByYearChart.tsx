@@ -18,17 +18,6 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
 
-      const title = root.container.children.push(
-        am5.Label.new(root, {
-          text: 'New Employment Approvals by Year',
-          fontSize: 18,
-          fontWeight: '600',
-          x: am5.p50,
-          centerX: am5.p50,
-          paddingBottom: 16
-        })
-      );
-
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           layout: root.verticalLayout,
@@ -38,6 +27,22 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           wheelY: 'none',
         })
       );
+
+      // Title inside chart with spacing so it doesn't overlap data
+      const title = chart.children.unshift(
+        am5.Label.new(root, {
+          text: 'New Employment Approvals by Year',
+          fontSize: 18,
+          fontWeight: '600',
+          x: am5.p50,
+          centerX: am5.p50,
+          paddingBottom: 12
+        })
+      );
+
+      // Increase chart height for consistency
+      chart.set('height', 480);
+      chart.set('paddingTop', 16);
 
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
@@ -49,9 +54,6 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           })
         })
       );
-
-      // Increase chart height for consistency
-      chart.set('height', 480);
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {

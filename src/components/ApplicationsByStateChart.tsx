@@ -18,17 +18,6 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
 
-      const title = root.container.children.push(
-        am5.Label.new(root, {
-          text: 'New Employment Approvals by State',
-          fontSize: 18,
-          fontWeight: '600',
-          x: am5.p50,
-          centerX: am5.p50,
-          paddingBottom: 16
-        })
-      );
-
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           layout: root.verticalLayout,
@@ -38,6 +27,23 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
           wheelY: 'none',
         })
       );
+
+      // Title inside chart with spacing
+      const title = chart.children.unshift(
+        am5.Label.new(root, {
+          text: 'New Employment Approvals by State',
+          fontSize: 18,
+          fontWeight: '600',
+          x: am5.p50,
+          centerX: am5.p50,
+          paddingBottom: 12
+        })
+      );
+
+      // Increase chart height for better label spacing
+      chart.set('height', 480);
+      chart.set('paddingTop', 16);
+
 
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
@@ -49,10 +55,6 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
           })
         })
       );
-
-      // Increase chart height for better label spacing
-      chart.set('height', 480);
-
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {

@@ -46,6 +46,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         })
       );
       chart.appear(800, 100);
+      chart.set('geodata', geo);
 
       // Title
       chart.children.unshift(
@@ -62,7 +63,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Create base polygon series (neutral fill) to ensure shapes render
       const baseSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          geoJSON: geo,
+          useGeodata: true,
           calculateAggregates: false,
         })
       );
@@ -78,7 +79,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Create heat polygon series (data-driven)
       const polygonSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          geoJSON: geo,
+          useGeodata: true,
           valueField: 'value',
           calculateAggregates: true,
         })
@@ -143,6 +144,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         if (itemsFull.length > 0) {
           polygonSeries.data.setAll(itemsFull);
           polygonSeries.appear(800);
+          chart.goHome();
         }
         const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);
         heatLegend.set('startValue', 0);
@@ -193,6 +195,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     if (itemsFull.length > 0) {
       polygonSeries.data.setAll(itemsFull);
       polygonSeries.appear(800);
+      chart.goHome();
       // eslint-disable-next-line no-console
       console.log('[Map] setAll applied:', itemsFull.length);
     }

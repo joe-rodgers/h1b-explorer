@@ -59,13 +59,15 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         interactive: true,
         strokeOpacity: 0.8,
         strokeWidth: 0.5,
+        fillOpacity: 1,
+        fill: am5.color(0xc6e9e9)
       });
 
       polygonSeries.set('heatRules', [
         {
           target: polygonSeries.mapPolygons.template,
           dataField: 'value',
-          min: am5.color(0xe0f3f3),
+          min: am5.color(0xc6e9e9),
           max: am5.color(0x006d77),
         },
       ]);
@@ -73,7 +75,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Heat legend
       const heatLegend = chart.children.push(
         am5.HeatLegend.new(root, {
-          startColor: am5.color(0xe0f3f3),
+          startColor: am5.color(0xc6e9e9),
           endColor: am5.color(0x006d77),
           startText: 'Low',
           endText: 'High',
@@ -84,6 +86,9 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           paddingTop: 8
         })
       );
+
+      // Bind legend to series so updates reflect min/max
+      polygonSeries.set('heatLegend', heatLegend);
 
       (root as any)._polygonSeries = polygonSeries;
       (root as any)._heatLegend = heatLegend;

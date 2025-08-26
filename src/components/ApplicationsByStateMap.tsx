@@ -18,7 +18,12 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
 
       // Load US geodata as ES module from CDN
       const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
-      const geo = (geodataMod as any).default || geodataMod;
+      const geoCandidate = (geodataMod as any)?.default ?? geodataMod;
+      const geo = (geoCandidate as any)?.default ?? geoCandidate;
+      if (typeof window !== 'undefined' && (window as any).DEBUG_MAP) {
+        // eslint-disable-next-line no-console
+        console.log('[Map] geodata features:', Array.isArray((geo as any)?.features) ? (geo as any).features.length : 'n/a', 'keys:', Object.keys(geo || {}));
+      }
 
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
@@ -129,7 +134,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     if (typeof window !== 'undefined' && (window as any).DEBUG_MAP) {
       const sample = itemsFull.slice(0, 5);
       // eslint-disable-next-line no-console
-      console.debug('[Map] features:', featureIds.length, 'itemsFull sample:', sample);
+      console.log('[Map] features:', featureIds.length, 'itemsFull sample:', sample);
     }
 
     if (itemsFull.length > 0) {

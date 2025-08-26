@@ -13,6 +13,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Unconditional debug markers
       // eslint-disable-next-line no-console
       console.log('[Map] mount effect start');
+      try {
+        const r = (chartRef.current as HTMLDivElement).getBoundingClientRect();
+        // eslint-disable-next-line no-console
+        console.log('[Map] container bbox', { w: r.width, h: r.height });
+      } catch {}
       // Load amCharts modules from esm.sh CDN to ensure proper ESM bindings
       const am5: any = await import('https://esm.sh/@amcharts/amcharts5');
       const am5map: any = await import('https://esm.sh/@amcharts/amcharts5/map');
@@ -219,5 +224,5 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       }
   }, [data]);
 
-  return <div style={{ width: '100%', height: 520 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 520, background: '#eef', border: '1px solid #99c' }} ref={chartRef} />;
 }

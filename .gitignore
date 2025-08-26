@@ -93,3 +93,4 @@ temp/
 
 # AG Grid specific
 ag-grid-enterprise-*.zip
+.vercel

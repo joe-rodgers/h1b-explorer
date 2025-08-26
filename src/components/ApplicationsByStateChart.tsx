@@ -1,0 +1,93 @@
+import { useEffect, useRef } from 'react';
+
+export type StateDatum = { state: string; total: number };
+
+export default function ApplicationsByStateChart({ data }: { data: StateDatum[] }) {
+  const chartRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<any | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    (async () => {
+      if (!chartRef.current || rootRef.current) return;
+      const am5 = await import('@amcharts/amcharts5');
+      const am5xy = await import('@amcharts/amcharts5/xy');
+      const { default: Animated } = await import('@amcharts/amcharts5/themes/Animated');
+      if (disposed || !chartRef.current) return;
+
+      const root = am5.Root.new(chartRef.current);
+      root.setThemes([Animated.new(root)]);
+
+      const chart = root.container.children.push(
+        am5xy.XYChart.new(root, {
+          layout: root.verticalLayout,
+          panX: false,
+          panY: false,
+          wheelX: 'none',
+          wheelY: 'none',
+        })
+      );
+
+      const xAxis = chart.xAxes.push(
+        am5xy.CategoryAxis.new(root, {
+          categoryField: 'state',
+          renderer: am5xy.AxisRendererX.new(root, { 
+            minGridDistance: 40,
+            cellStartLocation: 0.1,
+            cellEndLocation: 0.9
+          })
+        })
+      );
+
+      // Increase chart height for better label spacing
+      chart.set('height', 400);
+
+
+      const yAxis = chart.yAxes.push(
+        am5xy.ValueAxis.new(root, {
+          renderer: am5xy.AxisRendererY.new(root, {})
+        })
+      );
+
+      const series = chart.series.push(
+        am5xy.ColumnSeries.new(root, {
+          name: 'New Employment Approval',
+          xAxis,
+          yAxis,
+          valueYField: 'total',
+          categoryXField: 'state'
+        })
+      );
+      series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
+
+      ;(root as any)._xAxis = xAxis;
+      ;(root as any)._series = series;
+      rootRef.current = root;
+    })();
+
+    return () => {
+      disposed = true;
+      if (rootRef.current) {
+        rootRef.current.dispose();
+        rootRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const root: any = rootRef.current;
+    if (!root) return;
+    const xAxis = root._xAxis;
+    const series = root._series;
+    const items = (data || [])
+      .slice()
+      .sort((a, b) => b.total - a.total)
+      .map((d) => ({ state: String(d.state), total: d.total }));
+    xAxis.data.setAll(items);
+    series.data.setAll(items);
+  }, [data]);
+
+  return <div style={{ width: '100%', height: 400 }} ref={chartRef} />;
+}
+
+

@@ -56,10 +56,22 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           wheelX: 'none',
           wheelY: 'none',
           layout: root.verticalLayout,
-          projection: am5map.geoAlbersUsa(),
+          projection: am5map.geoMercator(),
         })
       );
       chart.appear(800, 100);
+
+      // Debug label to ensure amCharts is rendering
+      chart.children.push(
+        am5.Label.new(root, {
+          text: 'Rendering…',
+          fontSize: 14,
+          fontWeight: '600',
+          fill: am5.color(0x003566),
+          x: 20,
+          y: 10
+        })
+      );
 
       // Title
       chart.children.unshift(
@@ -93,6 +105,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         const featureIdsBase: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
         if (featureIdsBase.length > 0) {
           baseSeries.data.setAll(featureIdsBase.map((id) => ({ id })) as any);
+          baseSeries.appear(800);
         }
       } catch {}
 

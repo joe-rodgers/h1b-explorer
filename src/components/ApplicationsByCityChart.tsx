@@ -42,18 +42,31 @@ export default function ApplicationsByCityChart({ data }: { data: CityDatum[] })
 
       // Increase chart height to accommodate better label spacing
       chart.set('height', 480);
-      chart.set('paddingTop', 16);
+      chart.set('paddingBottom', 28);
+      // Add horizontal scrollbar to assist with many labels
+      chart.set('scrollbarX', am5.Scrollbar.new(root, { orientation: 'horizontal' }));
 
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
           categoryField: 'city',
           renderer: am5xy.AxisRendererX.new(root, { 
-            minGridDistance: 50,
+            minGridDistance: 70,
             cellStartLocation: 0.1,
             cellEndLocation: 0.9
           })
         })
       );
+
+      // Improve label readability: rotate and truncate
+      const xRenderer: any = xAxis.get('renderer');
+      xRenderer.labels.template.setAll({
+        rotation: -40,
+        centerY: am5.p50,
+        paddingTop: 8,
+        maxWidth: 90,
+        textAlign: 'center',
+        oversizedBehavior: 'truncate'
+      });
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {

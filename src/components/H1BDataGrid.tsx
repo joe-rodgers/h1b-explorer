@@ -7,6 +7,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 const ApplicationsByYearChart = lazy(() => import('./ApplicationsByYearChart'));
 const ApplicationsByStateChart = lazy(() => import('./ApplicationsByStateChart'));
 const ApplicationsByCityChart = lazy(() => import('./ApplicationsByCityChart'));
+const ApplicationsByEmployerChart = lazy(() => import('./ApplicationsByEmployerChart'));
 
 interface H1BRecord { [key: string]: any }
 
@@ -21,6 +22,7 @@ const H1BDataGrid: React.FC = () => {
   const [yearSeries, setYearSeries] = useState<{ year: number; total: number }[]>([]);
   const [stateSeries, setStateSeries] = useState<{ state: string; total: number }[]>([]);
   const [citySeries, setCitySeries] = useState<{ city: string; total: number }[]>([]);
+  const [employerSeries, setEmployerSeries] = useState<{ employer: string; total: number }[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
   const gridApiRef = useRef<GridApi | null>(null);
@@ -193,8 +195,22 @@ const H1BDataGrid: React.FC = () => {
     } catch (e) { console.error('fetchTopCities RPC exception', e); setCitySeries([]); }
   }
 
+  // Fetch top employers aggregate
+  const fetchTopEmployers = async () => {
+    try {
+      const years = selectedYears.length ? selectedYears : null;
+      const states = selectedStates.length ? selectedStates : null;
+      const { data, error } = await supabase.rpc('h1b_top_employers', { years, states });
+      if (error || !Array.isArray(data)) { console.error('fetchTopEmployers RPC error', error); setEmployerSeries([]); return; }
+      const series = (data as any[])
+        .map((r) => ({ employer: String((r as any).employer || ''), total: Number((r as any).total || 0) }))
+        .filter((d) => !!d.employer);
+      setEmployerSeries(series);
+    } catch (e) { console.error('fetchTopEmployers RPC exception', e); setEmployerSeries([]); }
+  }
+
   // initial aggregate
-  useEffect(() => { fetchYearAggregate(); fetchStateAggregate(); fetchTopCities(); }, []);
+  useEffect(() => { fetchYearAggregate(); fetchStateAggregate(); fetchTopCities(); fetchTopEmployers(); }, []);
 
   // Refresh charts when external year buttons change (uses current grid filters)
   useEffect(() => {
@@ -202,6 +218,7 @@ const H1BDataGrid: React.FC = () => {
     fetchYearAggregate(fm);
     fetchStateAggregate(fm);
     fetchTopCities();
+    fetchTopEmployers();
   }, [selectedYears, selectedStates]);
 
   return (
@@ -303,6 +320,11 @@ const H1BDataGrid: React.FC = () => {
           )}
           <Suspense fallback={null}>
             <ApplicationsByCityChart data={citySeries} />
+          </Suspense>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Suspense fallback={null}>
+            <ApplicationsByEmployerChart data={employerSeries} />
           </Suspense>
         </div>
       </div>

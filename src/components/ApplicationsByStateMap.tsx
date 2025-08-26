@@ -59,11 +59,28 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         })
       );
 
-      // Create polygon series
+      // Create base polygon series (neutral fill) to ensure shapes render
+      const baseSeries = chart.series.push(
+        am5map.MapPolygonSeries.new(root, {
+          geoJSON: geo,
+          calculateAggregates: false,
+        })
+      );
+      baseSeries.mapPolygons.template.setAll({
+        tooltipText: '{name}',
+        interactive: false,
+        strokeOpacity: 0.8,
+        strokeWidth: 0.5,
+        fillOpacity: 1,
+        fill: am5.color(0xE6E6E6)
+      });
+
+      // Create heat polygon series (data-driven)
       const polygonSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
           geoJSON: geo,
           valueField: 'value',
+          calculateAggregates: true,
         })
       );
       // eslint-disable-next-line no-console

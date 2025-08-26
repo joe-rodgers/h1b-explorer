@@ -46,7 +46,6 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         })
       );
       chart.appear(800, 100);
-      chart.set('geodata', geo);
 
       // Title
       chart.children.unshift(
@@ -63,7 +62,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Create base polygon series (neutral fill) to ensure shapes render
       const baseSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          useGeodata: true,
+          geoJSON: geo,
           calculateAggregates: false,
         })
       );
@@ -79,7 +78,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Create heat polygon series (data-driven)
       const polygonSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          useGeodata: true,
+          geoJSON: geo,
           valueField: 'value',
           calculateAggregates: true,
         })

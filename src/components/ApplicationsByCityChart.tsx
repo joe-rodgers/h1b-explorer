@@ -69,7 +69,7 @@ export default function ApplicationsByCityChart({ data }: { data: CityDatum[] })
         })
       );
       series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
-      series.set('tooltip', am5.Tooltip.new(root, { labelText: '{categoryX}: {valueY.formatNumber("#,###")}' }));
+      series.columns.template.setAll({ tooltipText: '{categoryX}: {valueY.formatNumber("#,###")}' });
 
       ;(root as any)._xAxis = xAxis;
       ;(root as any)._series = series;

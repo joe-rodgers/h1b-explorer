@@ -10,14 +10,14 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     let disposed = false;
     (async () => {
       if (!chartRef.current || rootRef.current) return;
-      // Load amCharts modules from CDN to avoid subpath resolution issues
-      const am5 = await import('https://cdn.amcharts.com/lib/5/index.js');
-      const am5map = await import('https://cdn.amcharts.com/lib/5/map.js');
-      const Animated = (await import('https://cdn.amcharts.com/lib/5/themes/Animated.js')).default;
+      // Load amCharts modules from esm.sh CDN to ensure proper ESM bindings
+      const am5: any = await import('https://esm.sh/@amcharts/amcharts5');
+      const am5map: any = await import('https://esm.sh/@amcharts/amcharts5/map');
+      const Animated: any = (await import('https://esm.sh/@amcharts/amcharts5/themes/Animated')).default;
       if (disposed || !chartRef.current) return;
 
       // Load US geodata as ES module from CDN
-      const geodataMod: any = await import('https://cdn.amcharts.com/lib/5/geodata/usaLow.js');
+      const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
       const geo = (geodataMod as any).default || geodataMod;
 
       const root = am5.Root.new(chartRef.current);

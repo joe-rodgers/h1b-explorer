@@ -18,6 +18,17 @@ export default function ApplicationsByCityChart({ data }: { data: CityDatum[] })
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
 
+      const title = root.container.children.push(
+        am5.Label.new(root, {
+          text: 'Top Cities by New Employment Approvals',
+          fontSize: 18,
+          fontWeight: '600',
+          x: am5.p50,
+          centerX: am5.p50,
+          paddingBottom: 8
+        })
+      );
+
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           layout: root.verticalLayout,
@@ -58,6 +69,7 @@ export default function ApplicationsByCityChart({ data }: { data: CityDatum[] })
         })
       );
       series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
+      series.set('tooltip', am5.Tooltip.new(root, { labelText: '{categoryX}: {valueY.formatNumber("#,###")}' }));
 
       ;(root as any)._xAxis = xAxis;
       ;(root as any)._series = series;

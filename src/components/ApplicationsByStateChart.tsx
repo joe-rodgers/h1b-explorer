@@ -18,6 +18,17 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
 
+      const title = root.container.children.push(
+        am5.Label.new(root, {
+          text: 'New Employment Approvals by State',
+          fontSize: 18,
+          fontWeight: '600',
+          x: am5.p50,
+          centerX: am5.p50,
+          paddingBottom: 8
+        })
+      );
+
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           layout: root.verticalLayout,
@@ -59,6 +70,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
         })
       );
       series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
+      series.set('tooltip', am5.Tooltip.new(root, { labelText: '{categoryX}: {valueY.formatNumber("#,###")}' }));
 
       ;(root as any)._xAxis = xAxis;
       ;(root as any)._series = series;

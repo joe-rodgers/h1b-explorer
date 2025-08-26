@@ -126,6 +126,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       (root as any)._polygonSeries = polygonSeries;
       (root as any)._heatLegend = heatLegend;
       (root as any)._geo = geo;
+      (root as any)._chart = chart;
       rootRef.current = root;
       // eslint-disable-next-line no-console
       console.log('[Map] rootRef set');
@@ -171,6 +172,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     console.log('[Map] data effect run; data length:', Array.isArray(data) ? data.length : 'n/a');
     const polygonSeries = root._polygonSeries;
     const geo = root._geo;
+    const chart = root._chart;
 
     // Map state code to amCharts polygon id 'US-XX'
     const items = (data || [])
@@ -195,7 +197,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     if (itemsFull.length > 0) {
       polygonSeries.data.setAll(itemsFull);
       polygonSeries.appear(800);
-      chart.goHome();
+      if (chart && typeof chart.goHome === 'function') chart.goHome();
       // eslint-disable-next-line no-console
       console.log('[Map] setAll applied:', itemsFull.length);
     }

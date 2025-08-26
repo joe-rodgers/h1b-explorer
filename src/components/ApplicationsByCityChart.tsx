@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 
-export type YearDatum = { year: number; total: number };
+export type CityDatum = { city: string; total: number };
 
-export default function ApplicationsByYearChart({ data }: { data: YearDatum[] }) {
+export default function ApplicationsByCityChart({ data }: { data: CityDatum[] }) {
   const chartRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<any | null>(null);
 
@@ -30,16 +30,16 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
 
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
-          categoryField: 'year',
+          categoryField: 'city',
           renderer: am5xy.AxisRendererX.new(root, { 
-            minGridDistance: 35,
+            minGridDistance: 50,
             cellStartLocation: 0.1,
             cellEndLocation: 0.9
           })
         })
       );
 
-      // Increase chart height for consistency
+      // Increase chart height to accommodate better label spacing
       chart.set('height', 400);
 
       const yAxis = chart.yAxes.push(
@@ -50,11 +50,11 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
 
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
-          name: 'Applications',
+          name: 'New Employment Approval',
           xAxis,
           yAxis,
           valueYField: 'total',
-          categoryXField: 'year'
+          categoryXField: 'city'
         })
       );
       series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
@@ -80,16 +80,13 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
     const series = root._series;
     const items = (data || [])
       .slice()
-      .sort((a, b) => a.year - b.year)
-      .map((d) => ({ year: String(d.year), total: d.total }));
-    if (items.length === 0) {
-      xAxis.data.setAll([]);
-      series.data.setAll([]);
-      return;
-    }
+      .sort((a, b) => b.total - a.total)
+      .map((d) => ({ city: String(d.city), total: d.total }));
     xAxis.data.setAll(items);
     series.data.setAll(items);
   }, [data]);
 
   return <div style={{ width: '100%', height: 400 }} ref={chartRef} />;
 }
+
+

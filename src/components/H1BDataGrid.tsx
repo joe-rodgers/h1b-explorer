@@ -1,11 +1,12 @@
-import React, { useMemo, useState, useEffect, lazy, Suspense } from 'react';
+import React, { useMemo, useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef, IGetRowsParams } from 'ag-grid-community';
+import type { ColDef, IGetRowsParams, GridApi } from 'ag-grid-community';
 // AG Grid v34 requires base CSS plus theme CSS when using legacy themes
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 const ApplicationsByYearChart = lazy(() => import('./ApplicationsByYearChart'));
 const ApplicationsByStateChart = lazy(() => import('./ApplicationsByStateChart'));
+const ApplicationsByCityChart = lazy(() => import('./ApplicationsByCityChart'));
 
 interface H1BRecord { [key: string]: any }
 
@@ -19,7 +20,10 @@ const H1BDataGrid: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [yearSeries, setYearSeries] = useState<{ year: number; total: number }[]>([]);
   const [stateSeries, setStateSeries] = useState<{ state: string; total: number }[]>([]);
+  const [citySeries, setCitySeries] = useState<{ city: string; total: number }[]>([]);
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const gridApiRef = useRef<GridApi | null>(null);
 
   // Column definitions mapped to Supabase (snake_case) schema
   const columnDefs: ColDef[] = [
@@ -28,7 +32,7 @@ const H1BDataGrid: React.FC = () => {
     { field: 'naics_code', headerName: 'NAICS Code', sortable: true, filter: 'agTextColumnFilter' },
     { field: 'petitioner_city', headerName: 'City', sortable: true, filter: 'agTextColumnFilter' },
     { field: 'petitioner_state', headerName: 'State', sortable: true, filter: 'agTextColumnFilter' },
-    { field: 'new_employment_approval', headerName: 'New Employment Approval', sortable: true, filter: 'agNumberColumnFilter' }
+    { field: 'new_employment_approval', headerName: 'New Employment Approval', sortable: true, filter: 'agNumberColumnFilter', filterParams: { filterOptions: ['greaterThan','equals','lessThan'] } }
   ];
 
   // Infinite row model datasource fetching from Supabase
@@ -41,11 +45,17 @@ const H1BDataGrid: React.FC = () => {
 
         // Sorting
         const sortModel = params.sortModel?.[0]
-        let query = supabase.from('h1b_cases').select('*', { count: 'exact' })
+        // Use planned count and select only visible columns to reduce query cost
+        let query = supabase
+          .from('h1b_cases')
+          .select('id,fiscal_year,employer_name,naics_code,petitioner_city,petitioner_state,new_employment_approval', { count: 'planned' })
 
-        // External year buttons
+        // External filters: years and states
         if (selectedYears.length > 0) {
           query = query.in('fiscal_year', selectedYears)
+        }
+        if (selectedStates.length > 0) {
+          query = query.in('petitioner_state', selectedStates)
         }
 
         // Filtering (map AG Grid filter model to Supabase)
@@ -126,7 +136,7 @@ const H1BDataGrid: React.FC = () => {
         params.failCallback()
       }
     }
-  }), [selectedYears])
+  }), [selectedYears, selectedStates])
 
   // Helper to apply basic filters to a Supabase query (no OR handling for simplicity)
   const applyFiltersToQuery = (query: any, fm: Record<string, any> | undefined, years?: number[]) => {
@@ -160,55 +170,67 @@ const H1BDataGrid: React.FC = () => {
     return query;
   };
 
-  // Fetch aggregated year series respecting current filters (limited sample for safety)
+  // Fetch aggregated year series via RPC
   const fetchYearAggregate = async (fm?: Record<string, any>) => {
     try {
-      const YEARS = Array.from({ length: 2025 - 2009 + 1 }, (_, i) => 2009 + i);
-
-      // If user already filters by a specific fiscal_year, only query that year
-      let targetYears = YEARS;
-      const fyFilter = fm && (fm as any)['fiscal_year'];
-      if (fyFilter && !fyFilter.operator) {
-        const num = parseInt(String(fyFilter.filter ?? '').replace(/[^0-9-]/g, ''), 10);
-        if (Number.isFinite(num)) targetYears = [num];
-      }
-
-      const requests = targetYears.map(async (year) => {
-        let q = supabase.from('h1b_cases').select('id', { head: true, count: 'exact' }).eq('fiscal_year', year);
-        // Apply other filters except fiscal_year
-        const fmSansYear = { ...(fm || {}) } as any; delete fmSansYear['fiscal_year'];
-        q = applyFiltersToQuery(q, fmSansYear, selectedYears);
-        const { count, error } = await q;
-        return { year, total: error ? 0 : (count ?? 0) };
-      });
-
-      const results = await Promise.all(requests);
-      setYearSeries(results.sort((a,b)=>a.year-b.year));
-    } catch { setYearSeries([]); }
+      const years = selectedYears.length ? selectedYears : null;
+      const states = selectedStates.length ? selectedStates : null;
+      const { data, error } = await supabase.rpc('h1b_sum_by_year_states', { years, states });
+      if (error || !Array.isArray(data)) { console.error('fetchYearAggregate RPC error', error); setYearSeries([]); return; }
+      const series = (data as any[]).map((r) => ({ year: Number((r as any).year ?? (r as any).fiscal_year), total: Number((r as any).total || 0) }));
+      setYearSeries(series);
+    } catch (e) { console.error('fetchYearAggregate RPC exception', e); setYearSeries([]); }
   };
 
-  // Fetch state aggregate of new_employment_approval respecting filters
+  // Fetch state aggregate via RPC
   const fetchStateAggregate = async (fm?: Record<string, any>) => {
     try {
-      // select state and approvals
-      let q = supabase.from('h1b_cases').select('petitioner_state,new_employment_approval').limit(8000);
-      q = applyFiltersToQuery(q, fm, selectedYears);
-      const { data, error } = await q;
-      if (error || !Array.isArray(data)) { setStateSeries([]); return; }
-      const agg = new Map<string, number>();
-      for (const r of data as any[]) {
-        const s = String(r.petitioner_state || '').trim();
-        const val = Number(r.new_employment_approval) || 0;
-        if (!s) continue;
-        agg.set(s, (agg.get(s) ?? 0) + val);
-      }
-      const series = Array.from(agg.entries()).map(([state, total]) => ({ state, total }));
+      const years = selectedYears.length ? selectedYears : null;
+      const states = selectedStates.length ? selectedStates : null;
+      const { data, error } = await supabase.rpc('h1b_sum_by_state_filtered', { years, states });
+      if (error || !Array.isArray(data)) { console.error('fetchStateAggregate RPC error', error); setStateSeries([]); return; }
+      const series = (data as any[])
+        .map((r) => ({
+          state: String(((r as any).state ?? (r as any).petitioner_state) || ''),
+          total: Number((r as any).total || 0)
+        }))
+        .filter((d) => !!d.state);
       setStateSeries(series);
-    } catch { setStateSeries([]); }
+    } catch (e) { console.error('fetchStateAggregate RPC exception', e); setStateSeries([]); }
+  }
+
+  // Fetch top cities aggregate
+  const fetchTopCities = async () => {
+    try {
+      const years = selectedYears.length ? selectedYears : null;
+      const states = selectedStates.length ? selectedStates : null;
+      
+      // Prevent loading cities when too many states are selected (could cause timeout)
+      if (states && states.length > 10) {
+        console.log('Too many states selected, skipping cities load to prevent timeout');
+        setCitySeries([]);
+        return;
+      }
+      
+      const { data, error } = await supabase.rpc('h1b_top_cities', { years, states });
+      if (error || !Array.isArray(data)) { console.error('fetchTopCities RPC error', error); setCitySeries([]); return; }
+      const series = (data as any[])
+        .map((r) => ({ city: String((r as any).city || ''), total: Number((r as any).total || 0) }))
+        .filter((d) => !!d.city);
+      setCitySeries(series);
+    } catch (e) { console.error('fetchTopCities RPC exception', e); setCitySeries([]); }
   }
 
   // initial aggregate
-  useEffect(() => { fetchYearAggregate(); fetchStateAggregate(); }, []);
+  useEffect(() => { fetchYearAggregate(); fetchStateAggregate(); fetchTopCities(); }, []);
+
+  // Refresh charts when external year buttons change (uses current grid filters)
+  useEffect(() => {
+    const fm = gridApiRef.current?.getFilterModel() as any;
+    fetchYearAggregate(fm);
+    fetchStateAggregate(fm);
+    fetchTopCities();
+  }, [selectedYears, selectedStates]);
 
   return (
     <div className="h1b-grid-container">
@@ -251,6 +273,38 @@ const H1BDataGrid: React.FC = () => {
             Clear
           </button>
         </div>
+        <div style={{ marginTop: 4, marginBottom: 8 }}>
+          <p className="grid-info">Filter by State (click to toggle). Multiple states can be selected.</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC','PR','VI','GU','MP']
+              .sort()
+              .map((s) => {
+                const active = selectedStates.includes(s);
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSelectedStates((prev) => (prev.includes(s) ? prev.filter((v) => v !== s) : [...prev, s]))}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      border: active ? '2px solid #004F54' : '1px solid #bbb',
+                      background: active ? '#A1E3D8' : '#F1EFE8',
+                      color: '#102C33',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            <button
+              onClick={() => setSelectedStates([])}
+              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #bbb', background: '#fff', cursor: 'pointer' }}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
             <ApplicationsByYearChart data={yearSeries} />
@@ -259,6 +313,24 @@ const H1BDataGrid: React.FC = () => {
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
             <ApplicationsByStateChart data={stateSeries} />
+          </Suspense>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {selectedStates.length > 10 && (
+            <div style={{ 
+              padding: '8px 12px', 
+              backgroundColor: '#fff3cd', 
+              border: '1px solid #ffeaa7', 
+              borderRadius: '4px', 
+              marginBottom: '8px',
+              fontSize: '14px',
+              color: '#856404'
+            }}>
+              ⚠️ Cities chart hidden: Too many states selected (limit: 10). Reduce state selection to see cities data.
+            </div>
+          )}
+          <Suspense fallback={null}>
+            <ApplicationsByCityChart data={citySeries} />
           </Suspense>
         </div>
       </div>
@@ -282,15 +354,23 @@ const H1BDataGrid: React.FC = () => {
           }}
           onGridReady={(params) => {
             console.log('Grid ready event fired');
+            // Apply default filter: show rows with New Employment Approval > 0
+            params.api.setFilterModel({
+              new_employment_approval: { type: 'greaterThan', filter: 0 }
+            });
             params.api.sizeColumnsToFit();
             const fm = params.api.getFilterModel() as any;
             fetchYearAggregate(fm);
             fetchStateAggregate(fm);
+            gridApiRef.current = params.api;
           }}
           onFilterChanged={(e) => {
             const fm = e.api.getFilterModel();
-            fetchYearAggregate(fm as any);
-            fetchStateAggregate(fm as any);
+            if ((window as any).__aggTimer) clearTimeout((window as any).__aggTimer);
+            (window as any).__aggTimer = setTimeout(() => {
+              fetchYearAggregate(fm as any);
+              fetchStateAggregate(fm as any);
+            }, 250);
           }}
         />
       </div>

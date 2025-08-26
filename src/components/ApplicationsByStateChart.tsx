@@ -31,9 +31,17 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
           categoryField: 'state',
-          renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 20 })
+          renderer: am5xy.AxisRendererX.new(root, { 
+            minGridDistance: 40,
+            cellStartLocation: 0.1,
+            cellEndLocation: 0.9
+          })
         })
       );
+
+      // Increase chart height for better label spacing
+      chart.set('height', 400);
+
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
@@ -79,7 +87,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
     series.data.setAll(items);
   }, [data]);
 
-  return <div style={{ width: '100%', height: 320 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 400 }} ref={chartRef} />;
 }
 
 

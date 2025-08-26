@@ -27,6 +27,10 @@ const H1BDataGrid: React.FC = () => {
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
   const gridApiRef = useRef<GridApi | null>(null);
 
+  // Year domains to avoid full-table scans on initial load
+  const YEARS_ALL = useMemo(() => Array.from({ length: 2025 - 2009 + 1 }, (_, i) => 2009 + i), []);
+  const YEARS_DEFAULT = useMemo(() => YEARS_ALL.slice(-11), [YEARS_ALL]); // 2015..2025
+
   // Column definitions mapped to Supabase (snake_case) schema
   const columnDefs: ColDef[] = [
     { field: 'fiscal_year', headerName: 'Fiscal Year', sortable: true, filter: 'agNumberColumnFilter', filterParams: { filterOptions: ['equals','lessThan','greaterThan'] } },
@@ -147,7 +151,7 @@ const H1BDataGrid: React.FC = () => {
   // Fetch aggregated year series via RPC
   const fetchYearAggregate = async (_fm?: Record<string, any>) => {
     try {
-      const years = selectedYears.length ? selectedYears : null;
+      const years = selectedYears.length ? selectedYears : YEARS_DEFAULT;
       const states = selectedStates.length ? selectedStates : null;
       const { data, error } = await supabase.rpc('h1b_sum_by_year_states', { years, states });
       if (error || !Array.isArray(data)) { console.error('fetchYearAggregate RPC error', error); setYearSeries([]); return; }
@@ -159,7 +163,7 @@ const H1BDataGrid: React.FC = () => {
   // Fetch state aggregate via RPC
   const fetchStateAggregate = async (_fm?: Record<string, any>) => {
     try {
-      const years = selectedYears.length ? selectedYears : null;
+      const years = selectedYears.length ? selectedYears : YEARS_DEFAULT;
       const states = selectedStates.length ? selectedStates : null;
       const { data, error } = await supabase.rpc('h1b_sum_by_state_filtered', { years, states });
       if (error || !Array.isArray(data)) { console.error('fetchStateAggregate RPC error', error); setStateSeries([]); return; }
@@ -176,7 +180,7 @@ const H1BDataGrid: React.FC = () => {
   // Fetch top cities aggregate
   const fetchTopCities = async () => {
     try {
-      const years = selectedYears.length ? selectedYears : null;
+      const years = selectedYears.length ? selectedYears : YEARS_DEFAULT;
       const states = selectedStates.length ? selectedStates : null;
       
       // Prevent loading cities when too many states are selected (could cause timeout)
@@ -198,7 +202,7 @@ const H1BDataGrid: React.FC = () => {
   // Fetch top employers aggregate
   const fetchTopEmployers = async () => {
     try {
-      const years = selectedYears.length ? selectedYears : null;
+      const years = selectedYears.length ? selectedYears : YEARS_DEFAULT;
       const states = selectedStates.length ? selectedStates : null;
       const { data, error } = await supabase.rpc('h1b_top_employers', { years, states });
       if (error || !Array.isArray(data)) { console.error('fetchTopEmployers RPC error', error); setEmployerSeries([]); return; }
@@ -299,6 +303,11 @@ const H1BDataGrid: React.FC = () => {
             <ApplicationsByYearChart data={yearSeries} />
           </Suspense>
         </div>
+        {selectedYears.length === 0 && (
+          <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+            Showing recent years by default for performance. Select years above to change.
+          </div>
+        )}
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
             <ApplicationsByStateChart data={stateSeries} />

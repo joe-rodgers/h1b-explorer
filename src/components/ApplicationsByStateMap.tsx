@@ -69,10 +69,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       baseSeries.mapPolygons.template.setAll({
         tooltipText: '{name}',
         interactive: false,
-        strokeOpacity: 0.8,
-        strokeWidth: 0.5,
+        strokeOpacity: 1,
+        stroke: am5.color(0x333333),
+        strokeWidth: 1,
         fillOpacity: 1,
-        fill: am5.color(0xE6E6E6)
+        fill: am5.color(0xBDBDBD)
       });
       try {
         const featureIdsBase: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
@@ -95,20 +96,21 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       polygonSeries.mapPolygons.template.setAll({
         tooltipText: '{name}: {value.formatNumber("#,###")}',
         interactive: true,
-        strokeOpacity: 0.8,
-        strokeWidth: 0.5,
+        strokeOpacity: 1,
+        stroke: am5.color(0x333333),
+        strokeWidth: 1,
         fillOpacity: 1,
-        fill: am5.color(0xc6e9e9)
+        fill: am5.color(0x90CAF9)
       });
-
-      polygonSeries.set('heatRules', [
-        {
-          target: polygonSeries.mapPolygons.template,
-          dataField: 'value',
-          min: am5.color(0xc6e9e9),
-          max: am5.color(0x006d77),
-        },
-      ]);
+      // Temporarily disable heatRules to prove shapes render; we'll re-enable once visible
+      // polygonSeries.set('heatRules', [
+      //   {
+      //     target: polygonSeries.mapPolygons.template,
+      //     dataField: 'value',
+      //     min: am5.color(0xCFE8F3),
+      //     max: am5.color(0x003566),
+      //   },
+      // ]);
 
       // Heat legend
       const heatLegend = chart.children.push(

@@ -8,6 +8,7 @@ const ApplicationsByYearChart = lazy(() => import('./ApplicationsByYearChart'));
 const ApplicationsByStateChart = lazy(() => import('./ApplicationsByStateChart'));
 const ApplicationsByCityChart = lazy(() => import('./ApplicationsByCityChart'));
 const ApplicationsByEmployerChart = lazy(() => import('./ApplicationsByEmployerChart'));
+const ApplicationsByStateMap = lazy(() => import('./ApplicationsByStateMap'));
 
 interface H1BRecord { [key: string]: any }
 
@@ -311,6 +312,11 @@ const H1BDataGrid: React.FC = () => {
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
             <ApplicationsByStateChart data={stateSeries} />
+          </Suspense>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Suspense fallback={null}>
+            <ApplicationsByStateMap data={stateSeries} />
           </Suspense>
         </div>
         <div style={{ marginTop: 12 }}>

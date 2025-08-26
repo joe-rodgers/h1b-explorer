@@ -29,7 +29,7 @@ export default function ApplicationsByCityChart({ data }: { data: CityDatum[] })
       );
 
       // Title inside chart with spacing
-      const title = chart.children.unshift(
+      chart.children.unshift(
         am5.Label.new(root, {
           text: 'Top Cities by New Employment Approvals',
           fontSize: 18,

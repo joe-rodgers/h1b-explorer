@@ -29,7 +29,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
       );
 
       // Title inside chart with spacing
-      const title = chart.children.unshift(
+      chart.children.unshift(
         am5.Label.new(root, {
           text: 'New Employment Approvals by State',
           fontSize: 18,

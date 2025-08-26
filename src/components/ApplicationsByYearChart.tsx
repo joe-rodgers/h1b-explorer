@@ -29,7 +29,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
       );
 
       // Title inside chart with spacing so it doesn't overlap data
-      const title = chart.children.unshift(
+      chart.children.unshift(
         am5.Label.new(root, {
           text: 'New Employment Approvals by Year',
           fontSize: 18,

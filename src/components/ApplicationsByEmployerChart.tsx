@@ -28,7 +28,7 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
         })
       );
 
-      const title = chart.children.unshift(
+      chart.children.unshift(
         am5.Label.new(root, {
           text: 'Top Employers by New Employment Approvals',
           fontSize: 18,

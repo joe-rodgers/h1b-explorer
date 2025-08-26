@@ -138,40 +138,12 @@ const H1BDataGrid: React.FC = () => {
     }
   }), [selectedYears, selectedStates])
 
-  // Helper to apply basic filters to a Supabase query (no OR handling for simplicity)
-  const applyFiltersToQuery = (query: any, fm: Record<string, any> | undefined, years?: number[]) => {
-    if (!fm) return query;
-    const textCols = new Set(['line_by_line','employer_name','tax_id','naics_code','petitioner_city','petitioner_state','petitioner_zip','source_file']);
-    const numberCols = new Set(['fiscal_year','new_employment_approval','new_employment_denial','continuation_approval','continuation_denial','data_year']);
-    for (const [colId, model] of Object.entries(fm)) {
-      if (!model) continue;
-      const m = (model as any).operator ? (model as any).conditions?.[0] : model;
-      if (!m) continue;
-      const type = String(m.type || '').toLowerCase();
-      const raw = m.filter;
-      if (textCols.has(colId)) {
-        const term = String(raw ?? '').trim();
-        if (!term) continue;
-        if (type === 'equals') query = query.eq(colId, term);
-        else if (type === 'startswith') query = query.ilike(colId, `${term}%`);
-        else if (type === 'endswith') query = query.ilike(colId, `%${term}`);
-        else query = query.ilike(colId, `%${term}%`);
-      } else if (numberCols.has(colId)) {
-        const num = parseInt(String(raw ?? '').replace(/[^0-9-]/g, ''), 10);
-        if (Number.isNaN(num)) continue;
-        if (type === 'lessthan') query = query.lt(colId, num);
-        else if (type === 'greaterthan') query = query.gt(colId, num);
-        else query = query.eq(colId, num);
-      }
-    }
-    if (years && years.length > 0) {
-      query = query.in('fiscal_year', years)
-    }
-    return query;
-  };
+  // (unused param kept for future extension and to match existing calls)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
 
   // Fetch aggregated year series via RPC
-  const fetchYearAggregate = async (fm?: Record<string, any>) => {
+  const fetchYearAggregate = async (_fm?: Record<string, any>) => {
     try {
       const years = selectedYears.length ? selectedYears : null;
       const states = selectedStates.length ? selectedStates : null;
@@ -183,7 +155,7 @@ const H1BDataGrid: React.FC = () => {
   };
 
   // Fetch state aggregate via RPC
-  const fetchStateAggregate = async (fm?: Record<string, any>) => {
+  const fetchStateAggregate = async (_fm?: Record<string, any>) => {
     try {
       const years = selectedYears.length ? selectedYears : null;
       const states = selectedStates.length ? selectedStates : null;

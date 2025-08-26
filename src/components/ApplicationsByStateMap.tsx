@@ -40,6 +40,15 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
 
+      // Ensure chart resizes to actual container size
+      try {
+        const ro = new ResizeObserver(() => {
+          try { root.resize(); } catch {}
+        });
+        ro.observe(chartRef.current as HTMLDivElement);
+        (root as any)._resizeObserver = ro;
+      } catch {}
+
       const chart = root.container.children.push(
         am5map.MapChart.new(root, {
           panX: 'none',
@@ -158,6 +167,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           polygonSeries.data.setAll(itemsFull);
           polygonSeries.appear(800);
           chart.goHome();
+          try { root.resize(); } catch {}
         }
         const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);
         heatLegend.set('startValue', 0);
@@ -171,6 +181,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     return () => {
       disposed = true;
       if (rootRef.current) {
+        try { (rootRef.current as any)._resizeObserver?.disconnect?.(); } catch {}
         rootRef.current.dispose();
         rootRef.current = null;
       }
@@ -210,6 +221,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       polygonSeries.data.setAll(itemsFull);
       polygonSeries.appear(800);
       if (chart && typeof chart.goHome === 'function') chart.goHome();
+      try { root.resize(); } catch {}
       // eslint-disable-next-line no-console
       console.log('[Map] setAll applied:', itemsFull.length);
     }

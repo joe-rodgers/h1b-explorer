@@ -117,7 +117,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     if (heatLegend) {
       heatLegend.set('startValue', 0);
       heatLegend.set('endValue', maxVal || 1);
-      heatLegend.labels.values.forEach((l: any) => l.set('fill', root.interfaceColors.get('text')));
+      heatLegend.startLabel.setAll({ fill: root.interfaceColors.get('text') });
+      heatLegend.endLabel.setAll({ fill: root.interfaceColors.get('text') });
     }
   }, [data]);
 

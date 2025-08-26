@@ -55,7 +55,9 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {})
+          renderer: am5xy.AxisRendererY.new(root, {}),
+          min: 0,
+          strictMinMax: true
         })
       );
 

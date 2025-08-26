@@ -74,6 +74,12 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         fillOpacity: 1,
         fill: am5.color(0xE6E6E6)
       });
+      try {
+        const featureIdsBase: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
+        if (featureIdsBase.length > 0) {
+          baseSeries.data.setAll(featureIdsBase.map((id) => ({ id })) as any);
+        }
+      } catch {}
 
       // Create heat polygon series (data-driven)
       const polygonSeries = chart.series.push(

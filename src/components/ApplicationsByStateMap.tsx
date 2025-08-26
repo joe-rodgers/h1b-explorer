@@ -33,6 +33,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           projection: am5map.geoAlbersUsa(),
         })
       );
+      chart.appear(800, 100);
 
       // Title
       chart.children.unshift(
@@ -124,8 +125,16 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
     const itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
 
+    // Debug: log a small sample to verify mapping
+    if (typeof window !== 'undefined' && (window as any).DEBUG_MAP) {
+      const sample = itemsFull.slice(0, 5);
+      // eslint-disable-next-line no-console
+      console.debug('[Map] features:', featureIds.length, 'itemsFull sample:', sample);
+    }
+
     if (itemsFull.length > 0) {
       polygonSeries.data.setAll(itemsFull);
+      polygonSeries.appear(800);
     }
 
     const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);

@@ -27,9 +27,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Load US geodata as ES module from CDN
       let geo: any = null;
       try {
-        const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
-        const geoCandidate = (geodataMod as any)?.default ?? geodataMod;
-        geo = (geoCandidate as any)?.default ?? geoCandidate;
+        const resp = await fetch('https://cdn.amcharts.com/lib/5/geodata/usaLow.json');
+        geo = await resp.json();
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('[Map] geodata import failed', err);
@@ -56,7 +55,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           wheelX: 'none',
           wheelY: 'none',
           layout: root.verticalLayout,
-          projection: am5map.geoMercator(),
+          projection: am5map.geoAlbersUsa(),
         })
       );
       chart.appear(800, 100);

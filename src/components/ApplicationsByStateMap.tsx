@@ -16,8 +16,9 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       const Animated = (await import('https://cdn.amcharts.com/lib/5/themes/Animated.js')).default;
       if (disposed || !chartRef.current) return;
 
-      // Load US geodata at runtime (avoids build-time geodata dependency)
-      const geo = await fetch('https://cdn.amcharts.com/lib/5/geodata/usaLow.json').then(r => r.json());
+      // Load US geodata as ES module from CDN
+      const geodataMod: any = await import('https://cdn.amcharts.com/lib/5/geodata/USA.js');
+      const geo = geodataMod.default;
 
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);

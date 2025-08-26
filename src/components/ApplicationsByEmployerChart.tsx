@@ -60,14 +60,16 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
         oversizedBehavior: 'truncate'
       });
 
-      chart.set('height', 480);
+      chart.set('height', 520);
       chart.set('paddingTop', 16);
       chart.set('paddingBottom', 28);
       chart.set('scrollbarX', am5.Scrollbar.new(root, { orientation: 'horizontal' }));
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {})
+          renderer: am5xy.AxisRendererY.new(root, {}),
+          min: 0,
+          strictMinMax: true
         })
       );
 
@@ -110,5 +112,5 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
     series.data.setAll(items);
   }, [data]);
 
-  return <div style={{ width: '100%', height: 480 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 520 }} ref={chartRef} />;
 }

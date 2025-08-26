@@ -25,7 +25,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           fontWeight: '600',
           x: am5.p50,
           centerX: am5.p50,
-          paddingBottom: 8
+          paddingBottom: 16
         })
       );
 
@@ -51,7 +51,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
       );
 
       // Increase chart height for consistency
-      chart.set('height', 400);
+      chart.set('height', 480);
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
@@ -105,5 +105,5 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
     series.data.setAll(items);
   }, [data]);
 
-  return <div style={{ width: '100%', height: 400 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 480 }} ref={chartRef} />;
 }

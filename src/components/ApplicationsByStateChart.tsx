@@ -25,7 +25,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
           fontWeight: '600',
           x: am5.p50,
           centerX: am5.p50,
-          paddingBottom: 8
+          paddingBottom: 16
         })
       );
 
@@ -51,7 +51,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
       );
 
       // Increase chart height for better label spacing
-      chart.set('height', 400);
+      chart.set('height', 480);
 
 
       const yAxis = chart.yAxes.push(
@@ -99,7 +99,7 @@ export default function ApplicationsByStateChart({ data }: { data: StateDatum[] 
     series.data.setAll(items);
   }, [data]);
 
-  return <div style={{ width: '100%', height: 400 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 480 }} ref={chartRef} />;
 }
 
 

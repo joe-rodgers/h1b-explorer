@@ -236,6 +236,12 @@ const H1BDataGrid: React.FC = () => {
         </div>
       </div>
       
+      <div style={{ marginTop: 12 }}>
+        <Suspense fallback={null}>
+          <ApplicationsByStateMap data={stateSeries} />
+        </Suspense>
+      </div>
+
       <div className="grid-controls">
         <p className="grid-info">Use the buttons to filter by Fiscal Year. Multiple years can be selected; charts will update too.</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
@@ -312,11 +318,6 @@ const H1BDataGrid: React.FC = () => {
         <div style={{ marginTop: 12 }}>
           <Suspense fallback={null}>
             <ApplicationsByStateChart data={stateSeries} />
-          </Suspense>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <Suspense fallback={null}>
-            <ApplicationsByStateMap data={stateSeries} />
           </Suspense>
         </div>
         <div style={{ marginTop: 12 }}>

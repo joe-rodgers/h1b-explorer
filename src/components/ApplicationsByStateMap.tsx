@@ -87,6 +87,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
 
       (root as any)._polygonSeries = polygonSeries;
       (root as any)._heatLegend = heatLegend;
+      (root as any)._geo = geo;
       rootRef.current = root;
     })();
 
@@ -103,6 +104,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     const root: any = rootRef.current;
     if (!root) return;
     const polygonSeries = root._polygonSeries;
+    const geo = root._geo;
 
     // Map state code to amCharts polygon id 'US-XX'
     const items = (data || [])
@@ -110,9 +112,18 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       .map((d) => ({ id: `US-${String(d.state || '').toUpperCase()}`, value: Number(d.total || 0) }))
       .filter((d) => !!d.id && !Number.isNaN(d.value));
 
-    polygonSeries.data.setAll(items);
+    // Build full data set from geodata so all polygons render
+    const featureIds: string[] = Array.isArray(geo?.features)
+      ? geo.features.map((f: any) => f.id)
+      : [];
+    const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
+    const itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
 
-    const maxVal = items.reduce((m, it) => (it.value > m ? it.value : m), 0);
+    if (itemsFull.length > 0) {
+      polygonSeries.data.setAll(itemsFull);
+    }
+
+    const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);
     const heatLegend = root._heatLegend;
     if (heatLegend) {
       heatLegend.set('startValue', 0);

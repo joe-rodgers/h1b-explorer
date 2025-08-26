@@ -10,9 +10,10 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     let disposed = false;
     (async () => {
       if (!chartRef.current || rootRef.current) return;
-      const am5 = await import('@amcharts/amcharts5');
-      const am5map = await import('@amcharts/amcharts5/map');
-      const { default: Animated } = await import('@amcharts/amcharts5/themes/Animated');
+      // Load amCharts modules from CDN to avoid subpath resolution issues
+      const am5 = await import('https://cdn.amcharts.com/lib/5/index.js');
+      const am5map = await import('https://cdn.amcharts.com/lib/5/map.js');
+      const Animated = (await import('https://cdn.amcharts.com/lib/5/themes/Animated.js')).default;
       if (disposed || !chartRef.current) return;
 
       // Load US geodata at runtime (avoids build-time geodata dependency)

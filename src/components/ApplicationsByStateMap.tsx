@@ -109,6 +109,31 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       (root as any)._heatLegend = heatLegend;
       (root as any)._geo = geo;
       rootRef.current = root;
+      // eslint-disable-next-line no-console
+      console.log('[Map] rootRef set');
+
+      // Apply current data immediately (in case data arrived before init)
+      try {
+        const items = (data || [])
+          .slice()
+          .map((d) => ({ id: `US-${String(d.state || '').toUpperCase()}`, value: Number(d.total || 0) }))
+          .filter((d) => !!d.id && !Number.isNaN(d.value));
+        const featureIds: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
+        const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
+        const itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
+        // eslint-disable-next-line no-console
+        console.log('[Map] initial setAll count:', itemsFull.length);
+        if (itemsFull.length > 0) {
+          polygonSeries.data.setAll(itemsFull);
+          polygonSeries.appear(800);
+        }
+        const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);
+        heatLegend.set('startValue', 0);
+        heatLegend.set('endValue', maxVal || 1);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[Map] initial data apply failed', err);
+      }
     })();
 
     return () => {
@@ -123,6 +148,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
   useEffect(() => {
     const root: any = rootRef.current;
     if (!root) return;
+    // eslint-disable-next-line no-console
+    console.log('[Map] data effect run; data length:', Array.isArray(data) ? data.length : 'n/a');
     const polygonSeries = root._polygonSeries;
     const geo = root._geo;
 
@@ -149,6 +176,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     if (itemsFull.length > 0) {
       polygonSeries.data.setAll(itemsFull);
       polygonSeries.appear(800);
+      // eslint-disable-next-line no-console
+      console.log('[Map] setAll applied:', itemsFull.length);
     }
 
     const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);

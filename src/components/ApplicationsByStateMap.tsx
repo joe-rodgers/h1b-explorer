@@ -10,6 +10,9 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     let disposed = false;
     (async () => {
       if (!chartRef.current || rootRef.current) return;
+      // Unconditional debug markers
+      // eslint-disable-next-line no-console
+      console.log('[Map] mount effect start');
       // Load amCharts modules from esm.sh CDN to ensure proper ESM bindings
       const am5: any = await import('https://esm.sh/@amcharts/amcharts5');
       const am5map: any = await import('https://esm.sh/@amcharts/amcharts5/map');
@@ -17,13 +20,17 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       if (disposed || !chartRef.current) return;
 
       // Load US geodata as ES module from CDN
-      const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
-      const geoCandidate = (geodataMod as any)?.default ?? geodataMod;
-      const geo = (geoCandidate as any)?.default ?? geoCandidate;
-      if (typeof window !== 'undefined' && (window as any).DEBUG_MAP) {
+      let geo: any = null;
+      try {
+        const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
+        const geoCandidate = (geodataMod as any)?.default ?? geodataMod;
+        geo = (geoCandidate as any)?.default ?? geoCandidate;
+      } catch (err) {
         // eslint-disable-next-line no-console
-        console.log('[Map] geodata features:', Array.isArray((geo as any)?.features) ? (geo as any).features.length : 'n/a', 'keys:', Object.keys(geo || {}));
+        console.error('[Map] geodata import failed', err);
       }
+      // eslint-disable-next-line no-console
+      console.log('[Map] geodata loaded features:', Array.isArray((geo as any)?.features) ? (geo as any).features.length : 'n/a');
 
       const root = am5.Root.new(chartRef.current);
       root.setThemes([Animated.new(root)]);
@@ -59,6 +66,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           valueField: 'value',
         })
       );
+      // eslint-disable-next-line no-console
+      console.log('[Map] polygon series created');
 
       polygonSeries.mapPolygons.template.setAll({
         tooltipText: '{name}: {value.formatNumber("#,###")}',
@@ -131,10 +140,10 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     const itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
 
     // Debug: log a small sample to verify mapping
-    if (typeof window !== 'undefined' && (window as any).DEBUG_MAP) {
+    if (true) {
       const sample = itemsFull.slice(0, 5);
       // eslint-disable-next-line no-console
-      console.log('[Map] features:', featureIds.length, 'itemsFull sample:', sample);
+      console.log('[Map] setAll count:', itemsFull.length, 'max sample:', sample);
     }
 
     if (itemsFull.length > 0) {
@@ -149,7 +158,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       heatLegend.set('endValue', maxVal || 1);
       heatLegend.startLabel.setAll({ fill: root.interfaceColors.get('text') });
       heatLegend.endLabel.setAll({ fill: root.interfaceColors.get('text') });
-    }
+      }
   }, [data]);
 
   return <div style={{ width: '100%', height: 520 }} ref={chartRef} />;

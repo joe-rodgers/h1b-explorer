@@ -40,6 +40,7 @@ select c.fiscal_year::int          as fiscal_year,
 from public.h1b_cases c
 where c.new_employment_approval > 0
   and coalesce(trim(c.petitioner_state), '') <> ''
+  and c.fiscal_year between 2015 and 2025
 group by c.fiscal_year, c.petitioner_state;
 
 create unique index if not exists uq_mv_year_state
@@ -54,6 +55,7 @@ from public.h1b_cases c
 where c.new_employment_approval > 0
   and coalesce(trim(c.petitioner_state), '') <> ''
   and coalesce(trim(c.petitioner_city),  '') <> ''
+  and c.fiscal_year between 2015 and 2025
 group by c.fiscal_year, c.petitioner_state, c.petitioner_city;
 
 create unique index if not exists uq_mv_city_year_state
@@ -68,6 +70,7 @@ from public.h1b_cases c
 where c.new_employment_approval > 0
   and coalesce(trim(c.petitioner_state), '') <> ''
   and coalesce(trim(c.employer_name),  '') <> ''
+  and c.fiscal_year between 2015 and 2025
 group by c.fiscal_year, c.petitioner_state, c.employer_name;
 
 create unique index if not exists uq_mv_emp_year_state

@@ -138,17 +138,20 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         stroke: am5.color(0x333333),
         strokeWidth: 1,
         fillOpacity: 1,
+        opacity: 1,
+        visible: true,
         fill: am5.color(0x90CAF9)
       });
-      // Temporarily disable heatRules to prove shapes render; we'll re-enable once visible
-      // polygonSeries.set('heatRules', [
-      //   {
-      //     target: polygonSeries.mapPolygons.template,
-      //     dataField: 'value',
-      //     min: am5.color(0xCFE8F3),
-      //     max: am5.color(0x003566),
-      //   },
-      // ]);
+
+      // Ensure heat rules are active for clear choropleth coloring
+      polygonSeries.set('heatRules', [
+        {
+          target: polygonSeries.mapPolygons.template,
+          dataField: 'value',
+          min: am5.color(0xCFE8F3),
+          max: am5.color(0x003566)
+        }
+      ]);
 
       // Heat legend
       const heatLegend = chart.children.push(
@@ -274,5 +277,5 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       }
   }, [data]);
 
-  return <div style={{ width: '100%', height: 520, background: '#eef', border: '1px solid #99c' }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 520 }} ref={chartRef} />;
 }

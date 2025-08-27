@@ -56,6 +56,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           wheelY: 'none',
           layout: root.verticalLayout,
           projection: am5map.geoAlbersUsa(),
+          homeGeoPoint: { longitude: -98.583, latitude: 39.833 },
+          homeZoomLevel: 1
         })
       );
       chart.appear(800, 100);
@@ -116,6 +118,12 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           calculateAggregates: true,
         })
       );
+      polygonSeries.events.on('datavalidated', () => {
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[Map] datavalidated polygons:', polygonSeries.mapPolygons?._values?.length ?? 'n/a');
+        } catch {}
+      });
       // eslint-disable-next-line no-console
       console.log('[Map] polygon series created');
 
@@ -170,7 +178,9 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           .slice()
           .map((d) => ({ id: `US-${String(d.state || '').toUpperCase()}`, value: Number(d.total || 0) }))
           .filter((d) => !!d.id && !Number.isNaN(d.value));
-        const featureIds: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
+        const featureIds: string[] = Array.isArray(geo?.features)
+          ? geo.features.map((f: any) => f.id).filter((id: string) => !['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'].includes(id))
+          : [];
         const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
         let itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
         const allZero = itemsFull.every((it) => it.value === 0);
@@ -223,7 +233,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
 
     // Build full data set from geodata so all polygons render
     const featureIds: string[] = Array.isArray(geo?.features)
-      ? geo.features.map((f: any) => f.id)
+      ? geo.features.map((f: any) => f.id).filter((id: string) => !['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'].includes(id))
       : [];
     const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
     let itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));

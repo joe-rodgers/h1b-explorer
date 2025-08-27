@@ -24,14 +24,14 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       const Animated: any = (await import('https://esm.sh/@amcharts/amcharts5/themes/Animated')).default;
       if (disposed || !chartRef.current) return;
 
-      // Load US geodata as ES module from CDN
+      // Load US geodata via official amCharts ESM module (avoids JSON CORS/403)
       let geo: any = null;
       try {
-        const resp = await fetch('https://cdn.jsdelivr.net/npm/@amcharts/amcharts5-geodata/usaLow.json');
-        geo = await resp.json();
+        const geodataMod: any = await import('https://cdn.amcharts.com/lib/5/geodata/usaLow.js');
+        geo = (geodataMod as any)?.default ?? geodataMod;
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('[Map] geodata import failed', err);
+         // eslint-disable-next-line no-console
+         console.error('[Map] geodata import failed', err);
       }
       // eslint-disable-next-line no-console
       console.log('[Map] geodata loaded features:', Array.isArray((geo as any)?.features) ? (geo as any).features.length : 'n/a');

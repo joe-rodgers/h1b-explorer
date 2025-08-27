@@ -27,7 +27,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Load US geodata via official amCharts ESM module (avoids JSON CORS/403)
       let geo: any = null;
       try {
-        const geodataMod: any = await import('https://cdn.amcharts.com/lib/5/geodata/usaLow.js');
+        const geodataMod: any = await import('https://esm.sh/@amcharts/amcharts5-geodata/usaLow');
         geo = (geodataMod as any)?.default ?? geodataMod;
       } catch (err) {
          // eslint-disable-next-line no-console
@@ -61,6 +61,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         })
       );
       chart.appear(800, 100);
+      chart.set('geodata', geo);
 
       // Debug label to ensure amCharts is rendering
       chart.children.push(
@@ -87,9 +88,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       );
 
       // Create base polygon series (neutral fill) to ensure shapes render
+      const excludeIds = ['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'];
       const baseSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          geoJSON: geo,
+          useGeodata: true,
+          exclude: excludeIds,
           calculateAggregates: false,
         })
       );
@@ -103,7 +106,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         fill: am5.color(0xBDBDBD)
       });
       try {
-        const featureIdsBase: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id) : [];
+        const featureIdsBase: string[] = Array.isArray(geo?.features) ? geo.features.map((f: any) => f.id).filter((id: string) => !excludeIds.includes(id)) : [];
         if (featureIdsBase.length > 0) {
           baseSeries.data.setAll(featureIdsBase.map((id) => ({ id })) as any);
           baseSeries.appear(800);
@@ -113,7 +116,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       // Create heat polygon series (data-driven)
       const polygonSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
-          geoJSON: geo,
+          useGeodata: true,
+          exclude: excludeIds,
           valueField: 'value',
           calculateAggregates: true,
         })
@@ -179,7 +183,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
           .map((d) => ({ id: `US-${String(d.state || '').toUpperCase()}`, value: Number(d.total || 0) }))
           .filter((d) => !!d.id && !Number.isNaN(d.value));
         const featureIds: string[] = Array.isArray(geo?.features)
-          ? geo.features.map((f: any) => f.id).filter((id: string) => !['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'].includes(id))
+          ? geo.features.map((f: any) => f.id).filter((id: string) => !excludeIds.includes(id))
           : [];
         const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
         let itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));
@@ -232,8 +236,9 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       .filter((d) => !!d.id && !Number.isNaN(d.value));
 
     // Build full data set from geodata so all polygons render
+    const excludeIds = ['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'];
     const featureIds: string[] = Array.isArray(geo?.features)
-      ? geo.features.map((f: any) => f.id).filter((id: string) => !['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'].includes(id))
+      ? geo.features.map((f: any) => f.id).filter((id: string) => !excludeIds.includes(id))
       : [];
     const valueById = new Map<string, number>(items.map((it: any) => [it.id, it.value]));
     let itemsFull = featureIds.map((id) => ({ id, value: valueById.get(id) ?? 0 }));

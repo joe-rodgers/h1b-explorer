@@ -138,8 +138,17 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
 
     // Resize handling
     try {
-      const ro = new ResizeObserver(() => { try { root.resize(); } catch {} });
+      const updateSize = () => {
+        const el = chartRef.current as HTMLDivElement | null;
+        if (!el) return;
+        const w = el.clientWidth || 0;
+        const h = Math.max(460, Math.min(820, Math.round(w * 0.60)));
+        el.style.height = `${h}px`;
+        try { root.resize(); } catch {}
+      };
+      const ro = new ResizeObserver(() => updateSize());
       ro.observe(chartRef.current as HTMLDivElement);
+      updateSize();
       (rootRef.current as any)._resizeObserver = ro;
     } catch {}
 
@@ -194,5 +203,5 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     }
   }, [data]);
 
-  return <div style={{ width: '100%', height: 520 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 560 }} ref={chartRef} />;
 }

@@ -11,7 +11,7 @@ a:hover { text-decoration: underline; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: #ffffff;
   color: var(--text);
   font-family: "Georgia", "Times New Roman", Times, serif;
 }

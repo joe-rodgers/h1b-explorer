@@ -4,7 +4,7 @@ import { useState } from 'react';
 export default function Header() {
   const [open, setOpen] = useState(false);
   return (
-    <header style={{ background: '#f7f4ef', color: '#242424', borderBottom: '1px solid #d8d8d8' }}>
+    <header style={{ background: '#f2f0eb', color: '#242424', borderBottom: '1px solid #d8d8d8' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '10px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/" style={{ color: 'inherit', textDecoration: 'none', fontWeight: 700, fontFamily: 'Georgia, Times New Roman, Times, serif' }}>H1B Explorer</Link>

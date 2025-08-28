@@ -31,7 +31,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         homeZoomLevel: 1
       })
     );
-    chart.set('geodata', am5geodata_usaLow as any);
+    const allFeatureIds: string[] = Array.isArray((am5geodata_usaLow as any)?.features)
+      ? (am5geodata_usaLow as any).features.map((f: any) => f.id)
+      : [];
+    const excludeIds = ['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'];
+    const includeIds = allFeatureIds.filter((id) => !excludeIds.includes(id));
 
     // Title
     chart.children.unshift(
@@ -45,13 +49,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       })
     );
 
-    const excludeIds = ['US-DC','US-PR','US-VI','US-GU','US-MP','US-AS'];
-
     // Base series (neutral)
     const baseSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
-        useGeodata: true,
-        exclude: excludeIds,
+        geoJSON: am5geodata_usaLow as any,
+        include: includeIds,
         calculateAggregates: false
       })
     );
@@ -64,20 +66,13 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       fillOpacity: 1,
       fill: am5.color(0xBDBDBD)
     });
-    try {
-      const featureIds: string[] = Array.isArray((am5geodata_usaLow as any)?.features)
-        ? (am5geodata_usaLow as any).features.map((f: any) => f.id).filter((id: string) => !excludeIds.includes(id))
-        : [];
-      if (featureIds.length) {
-        baseSeries.data.setAll(featureIds.map((id) => ({ id })) as any);
-      }
-    } catch {}
+    // No data seeding needed when using geoJSON + include
 
     // Heat series (data-driven)
     const polygonSeries = chart.series.push(
       am5map.MapPolygonSeries.new(root, {
-        useGeodata: true,
-        exclude: excludeIds,
+        geoJSON: am5geodata_usaLow as any,
+        include: includeIds,
         valueField: 'value',
         calculateAggregates: true
       })

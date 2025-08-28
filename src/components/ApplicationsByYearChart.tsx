@@ -36,7 +36,8 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           fontWeight: '600',
           x: am5.p50,
           centerX: am5.p50,
-          paddingBottom: 12
+          paddingBottom: 12,
+          fontFamily: 'Georgia, "Times New Roman", Times, serif'
         })
       );
 
@@ -54,6 +55,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           })
         })
       );
+      (xAxis.get('renderer') as any).labels.template.setAll({ fontFamily: 'Georgia, "Times New Roman", Times, serif' });
 
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
@@ -61,6 +63,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           min: 0
         })
       );
+      (yAxis.get('renderer') as any).labels.template.setAll({ fontFamily: 'Georgia, "Times New Roman", Times, serif' });
 
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
@@ -71,7 +74,7 @@ export default function ApplicationsByYearChart({ data }: { data: YearDatum[] })
           categoryXField: 'year'
         })
       );
-      series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
+      series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 1, fill: am5.color(0x000000) });
       series.columns.template.setAll({ tooltipText: '{categoryX}: {valueY.formatNumber("#,###")}' });
 
       ;(root as any)._xAxis = xAxis;

@@ -35,7 +35,8 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
           fontWeight: '600',
           x: am5.p50,
           centerX: am5.p50,
-          paddingBottom: 12
+          paddingBottom: 12,
+          fontFamily: 'Georgia, "Times New Roman", Times, serif'
         })
       );
 
@@ -57,7 +58,8 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
         paddingTop: 8,
         maxWidth: 120,
         textAlign: 'center',
-        oversizedBehavior: 'truncate'
+        oversizedBehavior: 'truncate',
+        fontFamily: 'Georgia, "Times New Roman", Times, serif'
       });
 
       chart.set('height', 520);
@@ -72,6 +74,7 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
           strictMinMax: true
         })
       );
+      (yAxis.get('renderer') as any).labels.template.setAll({ fontFamily: 'Georgia, "Times New Roman", Times, serif' });
 
       const series = chart.series.push(
         am5xy.ColumnSeries.new(root, {
@@ -82,7 +85,7 @@ export default function ApplicationsByEmployerChart({ data }: { data: EmployerDa
           categoryXField: 'employer'
         })
       );
-      series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 0.9 });
+      series.columns.template.setAll({ strokeOpacity: 0, fillOpacity: 1, fill: am5.color(0x000000) });
       series.columns.template.setAll({ tooltipText: '{categoryX}: {valueY.formatNumber("#,###")}' });
 
       ;(root as any)._xAxis = xAxis;

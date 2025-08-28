@@ -54,11 +54,12 @@ main {
 }
 
 .grid-stats span {
-  background-color: #f0f0f0;
+  background-color: #ffffff;
+  border: 1px solid #d8d8d8;
   padding: 8px 16px;
   border-radius: 4px;
-  font-weight: 500;
-  color: #666;
+  font-weight: 600;
+  color: #242424;
 }
 
 .grid-controls {
@@ -68,7 +69,7 @@ main {
 
 .grid-info {
   margin: 0;
-  color: #666;
+  color: #5a5a5a;
   font-size: 0.9em;
   line-height: 1.4;
 }
@@ -99,6 +100,14 @@ main {
 .ag-theme-alpine {
   width: 100% !important;
 }
+
+.grid-controls button {
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  color: #242424;
+}
+.grid-controls button:hover { border-color: #7e0f0f; background: #fff7f2; }
+.grid-controls button[style*="background: active"] {}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

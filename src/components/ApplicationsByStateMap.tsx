@@ -61,10 +61,10 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       tooltipText: '{name}',
       interactive: false,
       strokeOpacity: 1,
-      stroke: am5.color(0x333333),
+      stroke: am5.color(0x666666),
       strokeWidth: 1,
       fillOpacity: 1,
-      fill: am5.color(0xBDBDBD)
+      fill: am5.color(0xD9D9D9)
     });
     // No data seeding needed when using geoJSON + include
 
@@ -81,7 +81,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       tooltipText: '{name}: {value.formatNumber("#,###")}',
       interactive: true,
       strokeOpacity: 1,
-      stroke: am5.color(0x333333),
+      stroke: am5.color(0x666666),
       strokeWidth: 1,
       fillOpacity: 1
     });
@@ -90,8 +90,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         target: polygonSeries.mapPolygons.template,
         dataField: 'value',
         key: 'fill',
-        min: am5.color(0xCFE8F3),
-        max: am5.color(0x003566)
+        min: am5.color(0xEFEFEF),
+        max: am5.color(0x222222)
       }
     ]);
     // Click to zoom into a state
@@ -112,8 +112,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     // Heat legend
     const heatLegend = chart.children.push(
       am5.HeatLegend.new(root, {
-        startColor: am5.color(0xCFE8F3),
-        endColor: am5.color(0x003566),
+        startColor: am5.color(0xEFEFEF),
+        endColor: am5.color(0x222222),
         startText: 'Low',
         endText: 'High',
         orientation: 'horizontal',

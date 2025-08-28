@@ -142,7 +142,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         const el = chartRef.current as HTMLDivElement | null;
         if (!el) return;
         const w = el.clientWidth || 0;
-        const h = Math.max(460, Math.min(820, Math.round(w * 0.60)));
+        const h = Math.max(520, Math.min(900, Math.round(w * 0.68)));
         el.style.height = `${h}px`;
         try { root.resize(); } catch {}
       };
@@ -203,5 +203,5 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     }
   }, [data]);
 
-  return <div style={{ width: '100%', height: 560 }} ref={chartRef} />;
+  return <div style={{ width: '100%', height: 640 }} ref={chartRef} />;
 }

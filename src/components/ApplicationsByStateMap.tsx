@@ -117,6 +117,14 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     );
     polygonSeries.set('heatLegend', heatLegend);
 
+    // Sync legend with actual data range once values are calculated
+    polygonSeries.events.on('datavalidated', () => {
+      const low = polygonSeries.getPrivate('valueLow') ?? 0;
+      const high = polygonSeries.getPrivate('valueHigh') ?? 1;
+      heatLegend.set('startValue', low);
+      heatLegend.set('endValue', high > low ? high : low + 1);
+    });
+
     rootRef.current = { root, chart, polygonSeries, heatLegend };
 
     // Resize handling

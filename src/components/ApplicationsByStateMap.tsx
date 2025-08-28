@@ -11,7 +11,6 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
   const rootRef = useRef<any | null>(null);
 
   useEffect(() => {
-    let disposed = false;
     if (!chartRef.current || rootRef.current) return;
 
     // Create root
@@ -124,7 +123,6 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         paddingTop: 8
       })
     );
-    polygonSeries.set('heatLegend', heatLegend);
 
     // Sync legend with actual data range once values are calculated
     polygonSeries.events.on('datavalidated', () => {
@@ -156,7 +154,6 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     chart.appear(800, 100);
 
     return () => {
-      disposed = true;
       if (rootRef.current) {
         try { (rootRef.current as any)._resizeObserver?.disconnect?.(); } catch {}
         rootRef.current.root.dispose();

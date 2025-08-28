@@ -45,7 +45,8 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         fontWeight: '600',
         x: am5.p50,
         centerX: am5.p50,
-        paddingBottom: 12
+        paddingBottom: 12,
+        fontFamily: 'Georgia, "Times New Roman", Times, serif'
       })
     );
 

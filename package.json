@@ -11,7 +11,8 @@
     "import:h1b": "node --env-file=.env --loader tsx scripts/import_h1b_csv.ts"
   },
   "dependencies": {
-    "@amcharts/amcharts5": "^5.13.5",
+    "@amcharts/amcharts5": "^5.13.6",
+    "@amcharts/amcharts5-geodata": "^5.1.5",
     "@supabase/supabase-js": "^2.56.0",
     "ag-grid-community": "^34.1.2",
     "ag-grid-react": "^34.1.2",

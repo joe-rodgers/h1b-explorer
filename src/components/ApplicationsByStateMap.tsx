@@ -96,8 +96,15 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     // Click to zoom into a state
     polygonSeries.mapPolygons.template.events.on('click', (ev: any) => {
       const di = ev?.target?.dataItem;
-      if (di) {
+      if (!di) return;
+      const id = (di as any).dataContext?.id;
+      const ctx: any = rootRef.current || {};
+      if (ctx._zoomedId === id) {
+        ctx.chart?.goHome?.();
+        ctx._zoomedId = null;
+      } else {
         polygonSeries.zoomToDataItem(di);
+        if (ctx) ctx._zoomedId = id;
       }
     });
 
@@ -119,10 +126,11 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
 
     // Sync legend with actual data range once values are calculated
     polygonSeries.events.on('datavalidated', () => {
-      const low = polygonSeries.getPrivate('valueLow') ?? 0;
-      const high = polygonSeries.getPrivate('valueHigh') ?? 1;
+      let low = polygonSeries.getPrivate('valueLow') ?? 0;
+      let high = polygonSeries.getPrivate('valueHigh') ?? 1;
+      if (high <= low) high = low + 1;
       heatLegend.set('startValue', low);
-      heatLegend.set('endValue', high > low ? high : low + 1);
+      heatLegend.set('endValue', high);
     });
 
     rootRef.current = { root, chart, polygonSeries, heatLegend };
@@ -178,9 +186,10 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
     }
 
     const maxVal = itemsFull.reduce((m, it) => (it.value > m ? it.value : m), 0);
+    const minVal = itemsFull.reduce((m, it) => (it.value < m ? it.value : m), maxVal);
     if (heatLegend) {
-      heatLegend.set('startValue', 0);
-      heatLegend.set('endValue', maxVal || 1);
+      heatLegend.set('startValue', minVal);
+      heatLegend.set('endValue', maxVal > minVal ? maxVal : minVal + 1);
     }
   }, [data]);
 

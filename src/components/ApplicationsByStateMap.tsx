@@ -89,6 +89,7 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
       {
         target: polygonSeries.mapPolygons.template,
         dataField: 'value',
+        key: 'fill',
         min: am5.color(0xCFE8F3),
         max: am5.color(0x003566)
       }

@@ -241,7 +241,7 @@ const H1BDataGrid: React.FC = () => {
           <ApplicationsByStateMap data={stateSeries} />
         </Suspense>
       </div>
-
+      
       <div className="grid-controls">
         <p className="grid-info">Use the buttons to filter by Fiscal Year. Multiple years can be selected; charts will update too.</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
@@ -256,9 +256,9 @@ const H1BDataGrid: React.FC = () => {
                 style={{
                   padding: '6px 10px',
                   borderRadius: 6,
-                  border: active ? '2px solid #004F54' : '1px solid #bbb',
-                  background: active ? '#FBA765' : '#F1EFE8',
-                  color: '#102C33',
+                  border: active ? '2px solid #960001' : '1px solid #d8d8d8',
+                  background: active ? '#960001' : '#ffffff',
+                  color: active ? '#ffffff' : '#242424',
                   cursor: 'pointer'
                 }}
               >
@@ -268,7 +268,7 @@ const H1BDataGrid: React.FC = () => {
           })}
           <button
             onClick={() => setSelectedYears([])}
-            style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #bbb', background: '#fff', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d8d8d8', background: '#fff', cursor: 'pointer' }}
           >
             Clear
           </button>
@@ -287,9 +287,9 @@ const H1BDataGrid: React.FC = () => {
                     style={{
                       padding: '4px 8px',
                       borderRadius: 6,
-                      border: active ? '2px solid #004F54' : '1px solid #bbb',
-                      background: active ? '#A1E3D8' : '#F1EFE8',
-                      color: '#102C33',
+                      border: active ? '2px solid #960001' : '1px solid #d8d8d8',
+                      background: active ? '#960001' : '#ffffff',
+                      color: active ? '#ffffff' : '#242424',
                       cursor: 'pointer'
                     }}
                   >
@@ -299,7 +299,7 @@ const H1BDataGrid: React.FC = () => {
               })}
             <button
               onClick={() => setSelectedStates([])}
-              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #bbb', background: '#fff', cursor: 'pointer' }}
+              style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #d8d8d8', background: '#fff', cursor: 'pointer' }}
             >
               Clear
             </button>
@@ -378,8 +378,8 @@ const H1BDataGrid: React.FC = () => {
             const fm = e.api.getFilterModel();
             if ((window as any).__aggTimer) clearTimeout((window as any).__aggTimer);
             (window as any).__aggTimer = setTimeout(() => {
-              fetchYearAggregate(fm as any);
-              fetchStateAggregate(fm as any);
+            fetchYearAggregate(fm as any);
+            fetchStateAggregate(fm as any);
             }, 250);
           }}
         />

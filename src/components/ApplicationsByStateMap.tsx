@@ -93,6 +93,13 @@ export default function ApplicationsByStateMap({ data }: { data: StateDatum[] })
         max: am5.color(0x003566)
       }
     ]);
+    // Click to zoom into a state
+    polygonSeries.mapPolygons.template.events.on('click', (ev: any) => {
+      const di = ev?.target?.dataItem;
+      if (di) {
+        polygonSeries.zoomToDataItem(di);
+      }
+    });
 
     // Heat legend
     const heatLegend = chart.children.push(
